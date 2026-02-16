@@ -1,15 +1,19 @@
 <!DOCTYPE html>
-<html lang="si">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pascal Web Editor & Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GKHTML Code Runner</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
+        /* මූලික සැකසුම් (Basic Reset) */
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
             background-color: #1e1e1e;
             color: #ffffff;
             height: 100vh;
@@ -18,336 +22,144 @@
             overflow: hidden;
         }
 
-        /* Top Navigation Bar */
-        .navbar {
-            background-color: #333;
-            padding: 10px 20px;
+        /* ශීර්ෂය (Header) */
+        header {
+            background-color: #007acc;
+            padding: 5px 10px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #444;
+            align-items: center;
+            height: 65px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             z-index: 100;
         }
 
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            font-weight: bold;
-            color: #00bcd4;
-            font-size: 1.2rem;
-        }
-
-        .menu-btn {
-            cursor: pointer;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            padding: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.3s;
-        }
-
-        .menu-btn:hover { color: #00bcd4; }
-
-        /* Mobile View Tabs */
-        .mobile-tabs {
-            display: none;
-            background-color: #252526;
-            border-bottom: 1px solid #444;
-        }
-
-        .mobile-tab-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: none;
-            color: #aaa;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .mobile-tab-btn.active {
-            color: #00bcd4;
-            border-bottom: 2px solid #00bcd4;
-            background-color: #2d2d30;
-        }
-
-        /* Sidebar / Drawer */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100%;
-            background-color: #252526;
-            transition: 0.3s ease;
-            z-index: 1000;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            background-color: #333;
-            font-weight: bold;
-            color: #00bcd4;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-menu {
-            flex: 1;
-            padding: 20px 0;
-        }
-
-        .sidebar-item {
-            padding: 15px 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #ccc;
-        }
-
-        .sidebar-item:hover {
-            background-color: #3e3e42;
-            color: white;
-        }
-
-        /* About Us Popup (Modal) */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 20px;
-        }
-
-        .modal-card {
-            background: #252526;
-            width: 100%;
-            max-width: 480px;
-            border-radius: 12px;
-            overflow: hidden;
-            color: #e0e0e0;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
-            border: 1px solid #444;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            background-color: #1a73e8;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .modal-body {
-            padding: 25px;
-        }
-
-        .modal-body h2 {
-            color: #00bcd4;
-            font-size: 1.4rem;
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        .modal-body p {
-            font-size: 14px;
-            line-height: 1.6;
-            color: #bbbbbb;
-            margin-bottom: 20px;
-        }
-
-        .feature-list {
-            margin-bottom: 25px;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #00bcd4;
-            font-weight: 500;
-            margin-bottom: 12px;
-        }
-
-        .dev-section {
-            display: flex;
-            gap: 15px;
-            border-top: 1px solid #444;
-            padding-top: 20px;
-            align-items: flex-start;
-        }
-
-        .dev-info {
-            flex: 1;
-        }
-
-        .dev-info h3 {
-            color: #00bcd4;
-            margin: 0 0 5px 0;
-            font-size: 16px;
-        }
-
-        .dev-info div {
-            font-size: 13px;
-            margin-bottom: 5px;
-            color: #dddddd;
-        }
-
-        .dev-photo {
-            width: 100px;
-            height: 120px;
-            background-color: #333;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #555;
-        }
-
-        .dev-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(0.9);
-        }
-
-        .web-link {
-            color: #00bcd4;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        /* Overlay for Sidebar */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: none;
-            z-index: 999;
-        }
-
-        .overlay.active { display: block; }
-
-        /* Navbar Buttons */
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-clear {
-            background-color: #f44336;
-            border: none;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+        .header-left {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .btn-clear:hover { background-color: #d32f2f; }
 
-        .run-btn {
-            background-color: #4caf50;
-            border: none;
-            color: white;
-            padding: 8px 25px;
-            font-size: 16px;
-            border-radius: 4px;
+        .menu-icon {
             cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 14px;
             font-weight: bold;
+            white-space: nowrap;
         }
-        .run-btn:hover { background-color: #45a049; }
 
-        /* Workspace Layout */
-        .workspace {
+        .header-actions {
             display: flex;
+            gap: 5px;
+            flex-wrap: nowrap;
+        }
+
+        button {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-run { background-color: #28a745; color: white; }
+        .btn-save { background-color: #ff9800; color: white; }
+        .btn-open { background-color: #607d8b; color: white; }
+        .btn-clear { background-color: #dc3545; color: white; }
+
+        button:active { opacity: 0.8; }
+
+        /* Tabs Navigation */
+        .tabs {
+            display: flex;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #3e3e3e;
+            padding: 5px 10px;
+            gap: 5px;
+        }
+
+        .tab {
             flex: 1;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            transition: 0.3s;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: 1px solid #444;
+        }
+
+        .tab.active {
+            background-color: #3e4451;
+            border-color: #666;
+        }
+
+        /* Editor Section with Line Numbers */
+        .container {
+            flex: 1;
+            position: relative;
             overflow: hidden;
         }
 
-        .editor-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            border-right: 2px solid #333;
-            overflow: hidden;
+        .content-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
         }
 
-        .tab-bar {
-            background-color: #252526;
-            padding: 8px 15px;
-            font-size: 13px;
-            color: #aaa;
-            border-bottom: 1px solid #1e1e1e;
+        .content-section.active {
+            display: flex;
         }
 
         .editor-wrapper {
-            flex: 1;
             display: flex;
+            width: 100%;
+            height: 100%;
             background-color: #1e1e1e;
-            overflow: hidden;
         }
 
         .line-numbers {
-            width: 45px;
-            background-color: #1e1e1e;
-            color: #858585;
-            padding: 20px 5px;
+            width: 40px;
+            padding: 15px 5px;
             text-align: right;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 16px;
-            line-height: 1.5;
+            background-color: #252526;
+            color: #858585;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
             user-select: none;
+            line-height: 1.5;
             border-right: 1px solid #333;
+            overflow: hidden;
         }
 
-        #code-editor {
+        textarea {
             flex: 1;
+            height: 100%;
             background-color: #1e1e1e;
             color: #d4d4d4;
             border: none;
-            padding: 20px 15px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 16px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
             resize: none;
             outline: none;
             line-height: 1.5;
@@ -355,451 +167,322 @@
             overflow: auto;
         }
 
-        /* Terminal Section */
-        .terminal-container {
-            width: 40%;
-            background-color: #000;
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: white;
+        }
+
+        /* About Us Popup Overlay */
+        #about-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .about-modal {
+            background: #fff;
+            color: #333;
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            animation: popupAnim 0.3s ease-out;
         }
 
-        .terminal-header {
-            background-color: #333;
-            color: #ddd;
-            padding: 8px 15px;
-            font-size: 12px;
-            text-transform: uppercase;
+        @keyframes popupAnim {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        #terminal-output {
-            flex: 1;
+        .about-modal-header {
+            background-color: #1976d2;
+            color: white;
             padding: 15px;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 14px;
-            color: #00ff00; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .about-content {
+            padding: 20px;
             overflow-y: auto;
-            white-space: pre-wrap;
-            outline: none;
+            line-height: 1.6;
         }
 
-        #terminal-input-hidden {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
+        .about-title {
+            color: #1976d2;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
         }
 
-        .cursor {
-            display: inline-block;
-            width: 8px;
-            height: 15px;
-            background-color: #00ff00;
-            animation: blink 1s infinite;
-            vertical-align: middle;
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #1976d2;
+            font-weight: 500;
         }
 
-        @keyframes blink { 50% { opacity: 0; } }
-
-        /* Responsive Settings */
-        @media (max-width: 900px) {
-            .mobile-tabs { display: flex; }
-            .workspace { position: relative; }
-            
-            .editor-container { 
-                position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-                z-index: 10;
-                display: flex;
-                border-right: none;
-            }
-            
-            .terminal-container { 
-                position: absolute;
-                top: 0; left: 0; width: 100%; height: 100%;
-                z-index: 5;
-            }
-
-            /* Toggle Visibility based on state */
-            body.show-terminal .editor-container { z-index: 5; visibility: hidden; }
-            body.show-terminal .terminal-container { z-index: 10; visibility: visible; }
-            
-            .btn-clear span, .run-btn span { display: none; }
+        .developer-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
         }
+
+        .dev-info p {
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .dev-photo {
+            width: 90px;
+            height: 110px;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+        }
+
+        .link-text {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .check-mark { color: #1976d2; font-weight: bold; }
+        .red-dot { color: #f44336; margin-right: 5px; }
+
+        /* Hidden File Input */
+        #file-input { display: none; }
+
     </style>
 </head>
-<body class="show-editor">
+<body>
 
-    <input type="file" id="file-input" style="display: none;" accept=".pas,.txt" onchange="handleFileSelect(event)">
-
-    <!-- Sidebar Menu -->
-    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <span>GK PASCAL IDE</span>
-            <button class="menu-btn" onclick="toggleSidebar()">✕</button>
+    <header>
+        <div class="header-left">
+            <div class="menu-icon" onclick="toggleAbout()">
+                <svg width="24" height="24" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 7H26M4 15H26M4 23H26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="app-title">GK HTML Code Runner</div>
         </div>
-        <div class="sidebar-menu">
-            <div class="sidebar-item" onclick="document.getElementById('file-input').click(); toggleSidebar();">
-                <span>📂</span> Open File
-            </div>
-            <div class="sidebar-item" onclick="saveCode(); toggleSidebar();">
-                <span>💾</span> Save Program
-            </div>
-            <div class="sidebar-item" onclick="showAboutModal(); toggleSidebar();">
-                <span>ℹ️</span> About Us
-            </div>
+        
+        <div class="header-actions">
+            <button class="btn-open" onclick="triggerFileOpen()">📂 Open</button>
+            <button class="btn-save" onclick="saveAsHtml()">💾 Save</button>
+            <button class="btn-clear" onclick="clearCode()">🗑️ Clear</button>
+            <button class="btn-run" onclick="runAndSwitch()">▶ Run</button>
         </div>
-    </div>
+    </header>
 
-    <!-- About Us Modal -->
-    <div id="about-modal" class="modal-overlay" onclick="hideAboutModal()">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <div class="modal-header">
-                <span>About Us</span>
-                <span style="cursor: pointer;" onclick="hideAboutModal()">✕</span>
-            </div>
-            <div class="modal-body">
-                <h2>Welcome to GK PASCAL IDE</h2>
-                <p>මෙම මෘදුකාංගය නිර්මාණය කර ඇත්තේ පාසල් යන සිසුන්ට ICT විෂයේ ඇති පස්කල් (Pascal) කේතයන් පරිගණකයක් නැති උවත් Smart Phone එකකින් උවත් ඉතා පහසුවෙන් සහ නිවැරදිව පරීක්ෂා කර Output එක බැලීමට සහ ඉගෙන ගැනීමටයි.</p>
-                
-                <div class="feature-list">
-                    <div class="feature-item">✓ Real-time Rendering</div>
-                    <div class="feature-item">✓ Simple & User-friendly UI</div>
-                    <div class="feature-item">✓ Educational Support</div>
-                </div>
+    <input type="file" id="file-input" accept=".html,.htm,.txt" onchange="openFile(event)">
 
-                <div class="dev-section">
-                    <div class="dev-info">
-                        <h3>Developer</h3>
-                        <div><b>Name:</b> Gayan Karunathilaka (ICT Sir)</div>
-                        <div><b>Version:</b> 1.1 (2026)</div>
-                        <div style="margin-top: 10px; font-size: 12px; color: #aaa;">මාගේ ICT පන්ති වලට සම්බන්ධ වීමට 071 327 6655 අංකයට <b>class</b> ලෙස කෙටි පණිවිඩයක් යොමු කරන්න.</div>
-                        <div style="margin-top: 10px;">🔴 Web: <a href="#" class="web-link">Class Website</a></div>
-                    </div>
-                    <div class="dev-photo">
-                        <img src="https://via.placeholder.com/100x120/333/00bcd4?text=GK+Sir" alt="Developer Photo">
-                    </div>
-                </div>
-            </div>
+    <!-- Tab Buttons -->
+    <div class="tabs">
+        <div id="tab-code" class="tab active" onclick="switchTab('code')">
+            <span>&lt;&gt; Code</span>
+        </div>
+        <div id="tab-output" class="tab" onclick="switchTab('output')">
+            <span>📺 Output</span>
         </div>
     </div>
 
-    <!-- Main Navbar -->
-    <div class="navbar">
-        <div class="nav-left">
-            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo">GK PASCAL IDE</div>
-        </div>
-        <div class="nav-right">
-            <button class="btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
-            <button class="run-btn" onclick="executePascal()">▶ <span>RUN</span></button>
-        </div>
-    </div>
-
-    <!-- Mobile Tabs -->
-    <div class="mobile-tabs">
-        <button id="tab-editor" class="mobile-tab-btn active" onclick="switchMobileTab('editor')">EDITOR</button>
-        <button id="tab-terminal" class="mobile-tab-btn" onclick="switchMobileTab('terminal')">TERMINAL</button>
-    </div>
-
-    <div class="workspace">
-        <div id="editor-view" class="editor-container">
-            <div class="tab-bar">main.pas</div>
+    <div class="container">
+        <!-- Editor with Line Numbers -->
+        <div id="section-code" class="content-section active">
             <div class="editor-wrapper">
-                <div id="line-numbers" class="line-numbers">1</div>
-                <textarea id="code-editor" spellcheck="false"></textarea>
+                <div class="line-numbers" id="line-numbers">1</div>
+                <textarea id="code-input" placeholder="ඔබේ HTML කේත මෙහි ලියන්න..." spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"></textarea>
             </div>
         </div>
 
-        <div id="terminal-view" class="terminal-container">
-            <div class="terminal-header">Terminal Output</div>
-            <div id="terminal-output" tabindex="0">C:\Users\Pascal\Documents> <span class="cursor"></span></div>
-            <input type="text" id="terminal-input-hidden">
+        <div id="section-output" class="content-section">
+            <iframe id="preview-window"></iframe>
+        </div>
+    </div>
+
+    <!-- About Us Popup Overlay -->
+    <div id="about-overlay" onclick="closeOnOutsideClick(event)">
+        <div class="about-modal" onclick="event.stopPropagation()">
+            <div class="about-modal-header">
+                <span>About Us</span>
+                <div class="close-btn" onclick="toggleAbout()">×</div>
+            </div>
+            
+            <div class="about-content">
+                <div class="about-title">Welcome to GK HTML Code Runner</div>
+                <p style="margin-bottom: 15px; color: #555; font-size: 14px;">මෙම මෘදුකාංගය නිර්මාණය කර ඇත්තේ පාසල් යන සිසුන්ට ICT විෂයේ ඇති වෙබ් පිටු නිර්මාණය කිරීමේදී භාවිත වන HTML, CSS, JS කේත පරිගණකයක් නැති උවත් Smart Phone එකකින් උවත් ඉතා පහසුවෙන් සහ නිවැරදිව පරීක්ෂා කර Output එක බැලීමට සහ ඉගෙන ගැනීමටයි.</p>
+                
+                <div class="feature-item">
+                    <span class="check-mark">✓</span> Real-time Rendering
+                </div>
+                <div class="feature-item">
+                    <span class="check-mark">✓</span> Simple & User-friendly UI
+                </div>
+                <div class="feature-item">
+                    <span class="check-mark">✓</span> Educational Support
+                </div>
+
+                <div class="developer-section">
+                    <div class="dev-info">
+                        <h4 style="color: #1976d2; margin-bottom: 5px;">Developer</h4>
+                        <p><strong>Name:</strong> Gayan Karunathilaka (ICT Sir)</p>
+                        <p><strong>Version:</strong> 1.0 (2026)</p>
+                        <p style="margin-top: 10px; font-size: 12px; color: #444;">මාගේ ICT පන්ති වලට සම්බන්ධ වීමට 071 327 6655 අංකයට <b>class</b> ලෙස කෙටි පණිවිඩයක් යොමු කරන්න.</p>
+                        <p style="margin-top: 8px;">
+                            <span class="red-dot">●</span> Web: <a href="https://sites.google.com/view/gayan-karunathilaka-ict-class/home" target="_blank" class="link-text">Class Website</a>
+                        </p>
+                    </div>
+                    <img src="sir.jpg" alt="Developer" class="dev-photo" onerror="this.src='https://via.placeholder.com/90x110?text=ICT+Sir'">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const editor = document.getElementById('code-editor');
+        const textarea = document.getElementById('code-input');
         const lineNumbers = document.getElementById('line-numbers');
-        const terminalOutput = document.getElementById('terminal-output');
-        const hiddenInput = document.getElementById('terminal-input-hidden');
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const aboutModal = document.getElementById('about-modal');
-
-        let isWaitingForInput = false;
-        let inputResolver = null;
-        let currentInputBuffer = "";
-        let terminalHistory = "";
-
-        const defaultCode = "PROGRAM sum;\nVAR x, n, i, total : integer;\nBEGIN\n  write('How many numbers ? : ');\n  read(n);\n  writeln;\n  total := 0;\n  FOR i := 1 TO n DO\n  BEGIN\n    write('Enter number : ');\n    read(x);\n    total := total + x;\n  END;\n  Writeln;\n  writeln('Total = ', total);\nEND.";
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-        }
-
-        function showAboutModal() {
-            aboutModal.style.display = 'flex';
-        }
-
-        function hideAboutModal() {
-            aboutModal.style.display = 'none';
-        }
-
-        function switchMobileTab(tab) {
-            const body = document.body;
-            const editorBtn = document.getElementById('tab-editor');
-            const terminalBtn = document.getElementById('tab-terminal');
-
-            if (tab === 'editor') {
-                body.classList.remove('show-terminal');
-                editorBtn.classList.add('active');
-                terminalBtn.classList.remove('active');
-            } else {
-                body.classList.add('show-terminal');
-                terminalBtn.classList.add('active');
-                editorBtn.classList.remove('active');
-            }
-        }
-
-        function updateLineNumbers() {
-            const lines = editor.value.split('\n');
-            let displayNumbers = '';
-            for (let i = 1; i <= lines.length; i++) {
-                displayNumbers += i + '\n';
-            }
-            lineNumbers.innerText = displayNumbers;
-        }
+        const iframe = document.getElementById('preview-window');
+        const aboutOverlay = document.getElementById('about-overlay');
+        const fileInput = document.getElementById('file-input');
 
         window.onload = function() {
-            editor.value = defaultCode;
-            updateLineNumbers();
-        };
-
-        editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
-        editor.addEventListener('input', updateLineNumbers);
-
-        terminalOutput.addEventListener('click', () => {
-            if (isWaitingForInput) hiddenInput.focus();
-        });
-
-        hiddenInput.addEventListener('input', (e) => {
-            if (!isWaitingForInput) return;
-            currentInputBuffer = hiddenInput.value;
-            renderTerminal();
-        });
-
-        hiddenInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && isWaitingForInput) {
-                const value = hiddenInput.value;
-                isWaitingForInput = false;
-                hiddenInput.value = "";
-                terminalHistory += currentInputBuffer + "\n";
-                currentInputBuffer = "";
-                renderTerminal();
-                if (inputResolver) inputResolver(value);
-            }
-        });
-
-        function renderTerminal() {
-            const cursorHtml = '<span class="cursor"></span>';
-            terminalOutput.innerHTML = terminalHistory + currentInputBuffer + cursorHtml;
-            terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        }
-
-        async function getTerminalInput() {
-            isWaitingForInput = true;
-            currentInputBuffer = "";
-            hiddenInput.value = "";
-            hiddenInput.focus();
-            return new Promise((resolve) => {
-                inputResolver = resolve;
-            });
-        }
-
-        function clearCode() {
-            if (confirm("කේතය මකා දැමීමට අවශ්‍යද?")) {
-                editor.value = "";
+            const savedCode = localStorage.getItem('myHtmlCode');
+            if (savedCode) {
+                textarea.value = savedCode;
+                renderOutput();
                 updateLineNumbers();
             }
+        };
+
+        // --- Line Number Logic ---
+        function updateLineNumbers() {
+            const lines = textarea.value.split('\n').length;
+            let lineNumHtml = '';
+            for (let i = 1; i <= lines; i++) {
+                lineNumHtml += i + '<br>';
+            }
+            lineNumbers.innerHTML = lineNumHtml;
+            syncScroll();
         }
 
-        function saveCode() {
-            const blob = new Blob([editor.value], { type: 'text/plain' });
+        function syncScroll() {
+            lineNumbers.scrollTop = textarea.scrollTop;
+        }
+
+        function switchTab(target) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + target).classList.add('active');
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + target).classList.add('active');
+            if(target === 'output') renderOutput();
+            else updateLineNumbers(); // Ensure lines are correct when switching back
+        }
+
+        function renderOutput() {
+            const code = textarea.value;
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(code);
+            doc.close();
+            localStorage.setItem('myHtmlCode', code);
+        }
+
+        function runAndSwitch() {
+            renderOutput();
+            switchTab('output');
+        }
+
+        function saveAsHtml() {
+            const code = textarea.value;
+            if (!code.trim()) {
+                alert("පළමුව කේතයක් ඇතුළත් කරන්න.");
+                return;
+            }
+            const fileName = prompt("ගොනුවට නමක් ලබා දෙන්න (e.g. index):", "mysite");
+            if (fileName === null) return;
+            const blob = new Blob([code], { type: "text/html" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+            const a = document.createElement("a");
             a.href = url;
-            a.download = 'program.pas';
+            a.download = fileName + ".html";
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        function handleFileSelect(event) {
+        function triggerFileOpen() {
+            fileInput.click();
+        }
+
+        function openFile(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
-                editor.value = e.target.result;
+            reader.onload = function(e) {
+                textarea.value = e.target.result;
+                renderOutput();
                 updateLineNumbers();
+                switchTab('code');
             };
             reader.readAsText(file);
+            event.target.value = "";
         }
 
-        // --- Simplified Pascal Interpreter with Loop Support ---
-        async function executePascal() {
-            if (window.innerWidth <= 900) switchMobileTab('terminal');
+        function clearCode() {
+            if(confirm("සියලුම කේත මකා දමන්නද?")) {
+                textarea.value = "";
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.open();
+                doc.write(""); 
+                doc.close();
+                localStorage.removeItem('myHtmlCode');
+                updateLineNumbers();
+                switchTab('code');
+            }
+        }
 
-            terminalHistory = "Compiling...\n------------------------------\n";
-            currentInputBuffer = "";
-            renderTerminal();
+        function toggleAbout() {
+            const current = aboutOverlay.style.display;
+            aboutOverlay.style.display = (current === "flex") ? "none" : "flex";
+        }
 
-            await new Promise(r => setTimeout(r, 400));
-
-            const fullCode = editor.value;
-            let cleanCode = fullCode.replace(/\{[\s\S]*?\}/g, '');
-            let lines = cleanCode.split('\n').map(l => l.trim()).filter(l => l !== "");
-            
-            let vars = {};
-            let i = 0;
-
-            const evaluateExpr = (expr, context) => {
-                let processed = expr;
-                Object.keys(context).forEach(v => {
-                    processed = processed.replace(new RegExp('\\b' + v + '\\b', 'g'), context[v]);
-                });
-                try {
-                    processed = processed.replace(/<>/g, '!=').replace(/=/g, '==');
-                    return eval(processed);
-                } catch (e) { return expr; }
-            };
-
-            const runLine = async (line) => {
-                if (!line) return;
-                line = line.replace(/;$/, '').trim();
-                
-                let writeMatch = line.match(/write(ln)?\s*\((.*)\)/i);
-                if (writeMatch) {
-                    let content = writeMatch[2].trim();
-                    let parts = content.split(/,(?=(?:(?:[^']*'){2})*[^']*$)/);
-                    let output = "";
-                    parts.forEach(p => {
-                        p = p.trim();
-                        if (p.startsWith("'") && p.endsWith("'")) output += p.slice(1, -1);
-                        else output += evaluateExpr(p, vars);
-                    });
-                    terminalHistory += output + (writeMatch[1] ? "\n" : "");
-                    renderTerminal();
-                    return;
-                }
-
-                let readMatch = line.match(/read(ln)?\s*\((.*)\)/i);
-                if (readMatch) {
-                    let vNames = readMatch[2].split(',').map(v => v.trim());
-                    for (let vName of vNames) {
-                        let input = await getTerminalInput();
-                        vars[vName] = isNaN(input) || input === "" ? input : Number(input);
-                    }
-                    return;
-                }
-
-                let assignMatch = line.match(/^(\w+)\s*:=\s*(.+)$/);
-                if (assignMatch) {
-                    vars[assignMatch[1]] = evaluateExpr(assignMatch[2], vars);
-                }
-            };
-
-            // Function to find block range (BEGIN...END)
-            const getBlockLines = (startIndex) => {
-                if (lines[startIndex].toUpperCase() !== 'BEGIN') return [lines[startIndex]];
-                let block = [];
-                let depth = 0;
-                let j = startIndex;
-                while (j < lines.length) {
-                    let l = lines[j].toUpperCase();
-                    if (l === 'BEGIN') depth++;
-                    if (l === 'END' || l.startsWith('END;')) depth--;
-                    
-                    if (j > startIndex) block.push(lines[j]);
-                    if (depth === 0) {
-                        block.pop(); // Remove the closing 'END' from execution list
-                        return block;
-                    }
-                    j++;
-                }
-                return block;
-            };
-
-            const getBlockSize = (startIndex) => {
-                if (lines[startIndex].toUpperCase() !== 'BEGIN') return 1;
-                let depth = 0;
-                let j = startIndex;
-                while (j < lines.length) {
-                    let l = lines[j].toUpperCase();
-                    if (l === 'BEGIN') depth++;
-                    if (l === 'END' || l.startsWith('END;')) depth--;
-                    if (depth === 0) return (j - startIndex) + 1;
-                    j++;
-                }
-                return 1;
-            };
-
-            try {
-                while (i < lines.length) {
-                    let line = lines[i];
-                    
-                    // FOR LOOP
-                    let forMatch = line.match(/FOR\s+(\w+)\s*:=\s*(.+)\s+TO\s+(.+)\s+DO/i);
-                    if (forMatch) {
-                        let vName = forMatch[1];
-                        let start = parseInt(evaluateExpr(forMatch[2], vars));
-                        let end = parseInt(evaluateExpr(forMatch[3], vars));
-                        
-                        let loopBodyLines = getBlockLines(i + 1);
-                        let blockSize = getBlockSize(i + 1);
-
-                        for (let val = start; val <= end; val++) {
-                            vars[vName] = val;
-                            for (let bodyLine of loopBodyLines) {
-                                await runLine(bodyLine);
-                            }
-                        }
-                        i += 1 + blockSize;
-                        continue;
-                    }
-
-                    // WHILE LOOP
-                    let whileMatch = line.match(/WHILE\s+(.+)\s+DO/i);
-                    if (whileMatch) {
-                        let cond = whileMatch[1];
-                        let loopBodyLines = getBlockLines(i + 1);
-                        let blockSize = getBlockSize(i + 1);
-
-                        while (evaluateExpr(cond, vars)) {
-                            for (let bodyLine of loopBodyLines) {
-                                await runLine(bodyLine);
-                            }
-                        }
-                        i += 1 + blockSize;
-                        continue;
-                    }
-
-                    if (line.toUpperCase().startsWith('PROGRAM') || 
-                        line.toUpperCase().startsWith('VAR') || 
-                        line.toUpperCase() === 'BEGIN' || 
-                        line.toUpperCase().startsWith('END')) {
-                        i++;
-                        continue;
-                    }
-
-                    await runLine(line);
-                    i++;
-                }
-                
-                terminalHistory += "\n------------------------------\nC:\\Users\\Pascal\\Documents> ";
-                renderTerminal();
-            } catch (err) {
-                terminalHistory += `<span style="color: #ff5555;">\nදෝෂයකි: කේතය ක්‍රියාත්මක කිරීමට නොහැකි විය.</span>\n`;
-                renderTerminal();
+        function closeOnOutsideClick(e) {
+            if (e.target === aboutOverlay) {
+                toggleAbout();
             }
         }
     </script>
