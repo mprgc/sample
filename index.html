@@ -532,7 +532,7 @@
         let currentInputBuffer = "";
         let terminalHistory = "";
 
-        const defaultCode = "program Calc;\nvar x, y, sum : integer;\nbegin\n  write('Enter first number : ');\n  readln(x);\n  write('Enter second number : ');\n  readln(y);\n  sum := x + y;\n  writeln('Sum = ', sum);\nend.";
+        const defaultCode = "PROGRAM sum;\nVAR x, n, i, total : integer;\nBEGIN\n  write('How many numbers ? : ');\n  read(n);\n  writeln;\n  total := 0;\n  FOR i := 1 TO n DO\n  BEGIN\n    write('Enter number : ');\n    read(x);\n    total := total + x;\n  END;\n  Writeln;\n  writeln('Total = ', total);\nEND.";
 
         function toggleSidebar() {
             sidebar.classList.toggle('active');
@@ -645,96 +645,160 @@
             reader.readAsText(file);
         }
 
+        // --- Simplified Pascal Interpreter with Loop Support ---
         async function executePascal() {
-            // Auto switch to terminal tab on mobile when running
-            if (window.innerWidth <= 900) {
-                switchMobileTab('terminal');
-            }
+            if (window.innerWidth <= 900) switchMobileTab('terminal');
 
-            const fullCode = editor.value;
             terminalHistory = "Compiling...\n------------------------------\n";
             currentInputBuffer = "";
             renderTerminal();
 
             await new Promise(r => setTimeout(r, 400));
 
-            const codeLines = fullCode.split('\n');
-            let variables = {};
-            let hasError = false;
+            const fullCode = editor.value;
+            let cleanCode = fullCode.replace(/\{[\s\S]*?\}/g, '');
+            let lines = cleanCode.split('\n').map(l => l.trim()).filter(l => l !== "");
+            
+            let vars = {};
+            let i = 0;
 
-            for (let i = 0; i < codeLines.length; i++) {
-                let line = codeLines[i].trim();
-                let lineNumber = i + 1;
-
-                if (!line || line.toLowerCase().startsWith('program') || 
-                    line.toLowerCase().startsWith('var') ||
-                    line.toLowerCase() === 'begin' || 
-                    line.toLowerCase() === 'end.') continue;
-
+            const evaluateExpr = (expr, context) => {
+                let processed = expr;
+                Object.keys(context).forEach(v => {
+                    processed = processed.replace(new RegExp('\\b' + v + '\\b', 'g'), context[v]);
+                });
                 try {
-                    let processingLine = line.endsWith(';') ? line.slice(0, -1).trim() : line;
+                    processed = processed.replace(/<>/g, '!=').replace(/=/g, '==');
+                    return eval(processed);
+                } catch (e) { return expr; }
+            };
 
-                    let readMatch = processingLine.match(/read(ln)?\s*\((.*)\)/i);
-                    if (readMatch) {
-                        let varNames = readMatch[2].split(',').map(v => v.trim());
-                        for (let vName of varNames) {
-                            let userInput = await getTerminalInput();
-                            variables[vName] = isNaN(userInput) || userInput === "" ? userInput : Number(userInput);
-                        }
-                        continue;
-                    }
-
-                    let writeMatch = processingLine.match(/write(ln)?\s*\((.*)\)/i);
-                    if (writeMatch) {
-                        let content = writeMatch[2].trim();
-                        let parts = content.split(/,(?=(?:(?:[^']*'){2})*[^']*$)/);
-                        let outputLine = "";
-
-                        parts.forEach(part => {
-                            part = part.trim();
-                            if (part.startsWith("'") && part.endsWith("'")) {
-                                outputLine += part.slice(1, -1);
-                            } else if (variables[part] !== undefined) {
-                                outputLine += variables[part];
-                            } else {
-                                try {
-                                    let tempExpr = part;
-                                    Object.keys(variables).forEach(v => {
-                                        tempExpr = tempExpr.replace(new RegExp('\\b' + v + '\\b', 'g'), variables[v]);
-                                    });
-                                    outputLine += eval(tempExpr);
-                                } catch(err) {
-                                    if(isNaN(part)) throw new Error("Undefined");
-                                    outputLine += part;
-                                }
-                            }
-                        });
-                        
-                        terminalHistory += outputLine + (writeMatch[1] ? "\n" : "");
-                        renderTerminal();
-                        continue;
-                    }
-
-                    let assignMatch = processingLine.match(/^(\w+)\s*:=\s*(.+)$/);
-                    if (assignMatch) {
-                        let varName = assignMatch[1].trim();
-                        let expression = assignMatch[2].trim();
-                        Object.keys(variables).forEach(v => {
-                            expression = expression.replace(new RegExp('\\b' + v + '\\b', 'g'), variables[v]);
-                        });
-                        variables[varName] = eval(expression.replace(/'/g, '"'));
-                        continue;
-                    }
-                } catch (e) {
-                    terminalHistory += `<span style="color: #ff5555;">දෝෂයකි: Pascal කේතයේ වැරැද්දක් පවතී.\nපේළි අංකය: ${lineNumber}</span>\n\nC:\\Users\\Pascal\\Documents> `;
+            const runLine = async (line) => {
+                if (!line) return;
+                line = line.replace(/;$/, '').trim();
+                
+                let writeMatch = line.match(/write(ln)?\s*\((.*)\)/i);
+                if (writeMatch) {
+                    let content = writeMatch[2].trim();
+                    let parts = content.split(/,(?=(?:(?:[^']*'){2})*[^']*$)/);
+                    let output = "";
+                    parts.forEach(p => {
+                        p = p.trim();
+                        if (p.startsWith("'") && p.endsWith("'")) output += p.slice(1, -1);
+                        else output += evaluateExpr(p, vars);
+                    });
+                    terminalHistory += output + (writeMatch[1] ? "\n" : "");
                     renderTerminal();
-                    hasError = true;
-                    break;
+                    return;
                 }
-            }
 
-            if (!hasError) {
+                let readMatch = line.match(/read(ln)?\s*\((.*)\)/i);
+                if (readMatch) {
+                    let vNames = readMatch[2].split(',').map(v => v.trim());
+                    for (let vName of vNames) {
+                        let input = await getTerminalInput();
+                        vars[vName] = isNaN(input) || input === "" ? input : Number(input);
+                    }
+                    return;
+                }
+
+                let assignMatch = line.match(/^(\w+)\s*:=\s*(.+)$/);
+                if (assignMatch) {
+                    vars[assignMatch[1]] = evaluateExpr(assignMatch[2], vars);
+                }
+            };
+
+            // Function to find block range (BEGIN...END)
+            const getBlockLines = (startIndex) => {
+                if (lines[startIndex].toUpperCase() !== 'BEGIN') return [lines[startIndex]];
+                let block = [];
+                let depth = 0;
+                let j = startIndex;
+                while (j < lines.length) {
+                    let l = lines[j].toUpperCase();
+                    if (l === 'BEGIN') depth++;
+                    if (l === 'END' || l.startsWith('END;')) depth--;
+                    
+                    if (j > startIndex) block.push(lines[j]);
+                    if (depth === 0) {
+                        block.pop(); // Remove the closing 'END' from execution list
+                        return block;
+                    }
+                    j++;
+                }
+                return block;
+            };
+
+            const getBlockSize = (startIndex) => {
+                if (lines[startIndex].toUpperCase() !== 'BEGIN') return 1;
+                let depth = 0;
+                let j = startIndex;
+                while (j < lines.length) {
+                    let l = lines[j].toUpperCase();
+                    if (l === 'BEGIN') depth++;
+                    if (l === 'END' || l.startsWith('END;')) depth--;
+                    if (depth === 0) return (j - startIndex) + 1;
+                    j++;
+                }
+                return 1;
+            };
+
+            try {
+                while (i < lines.length) {
+                    let line = lines[i];
+                    
+                    // FOR LOOP
+                    let forMatch = line.match(/FOR\s+(\w+)\s*:=\s*(.+)\s+TO\s+(.+)\s+DO/i);
+                    if (forMatch) {
+                        let vName = forMatch[1];
+                        let start = parseInt(evaluateExpr(forMatch[2], vars));
+                        let end = parseInt(evaluateExpr(forMatch[3], vars));
+                        
+                        let loopBodyLines = getBlockLines(i + 1);
+                        let blockSize = getBlockSize(i + 1);
+
+                        for (let val = start; val <= end; val++) {
+                            vars[vName] = val;
+                            for (let bodyLine of loopBodyLines) {
+                                await runLine(bodyLine);
+                            }
+                        }
+                        i += 1 + blockSize;
+                        continue;
+                    }
+
+                    // WHILE LOOP
+                    let whileMatch = line.match(/WHILE\s+(.+)\s+DO/i);
+                    if (whileMatch) {
+                        let cond = whileMatch[1];
+                        let loopBodyLines = getBlockLines(i + 1);
+                        let blockSize = getBlockSize(i + 1);
+
+                        while (evaluateExpr(cond, vars)) {
+                            for (let bodyLine of loopBodyLines) {
+                                await runLine(bodyLine);
+                            }
+                        }
+                        i += 1 + blockSize;
+                        continue;
+                    }
+
+                    if (line.toUpperCase().startsWith('PROGRAM') || 
+                        line.toUpperCase().startsWith('VAR') || 
+                        line.toUpperCase() === 'BEGIN' || 
+                        line.toUpperCase().startsWith('END')) {
+                        i++;
+                        continue;
+                    }
+
+                    await runLine(line);
+                    i++;
+                }
+                
                 terminalHistory += "\n------------------------------\nC:\\Users\\Pascal\\Documents> ";
+                renderTerminal();
+            } catch (err) {
+                terminalHistory += `<span style="color: #ff5555;">\nදෝෂයකි: කේතය ක්‍රියාත්මක කිරීමට නොහැකි විය.</span>\n`;
                 renderTerminal();
             }
         }
