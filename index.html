@@ -26,7 +26,7 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 1px solid #444;
-            position: relative;
+            z-index: 100;
         }
 
         .nav-left {
@@ -41,30 +41,239 @@
             font-size: 1.2rem;
         }
 
-        .menu-icon {
+        .menu-btn {
             cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
             padding: 5px;
-        }
-
-        .menu-icon div {
-            width: 20px;
-            height: 2px;
-            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: 0.3s;
         }
 
+        .menu-btn:hover { color: #00bcd4; }
+
+        /* Mobile View Tabs */
+        .mobile-tabs {
+            display: none;
+            background-color: #252526;
+            border-bottom: 1px solid #444;
+        }
+
+        .mobile-tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: #aaa;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .mobile-tab-btn.active {
+            color: #00bcd4;
+            border-bottom: 2px solid #00bcd4;
+            background-color: #2d2d30;
+        }
+
+        /* Sidebar / Drawer */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #252526;
+            transition: 0.3s ease;
+            z-index: 1000;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: #333;
+            font-weight: bold;
+            color: #00bcd4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #ccc;
+        }
+
+        .sidebar-item:hover {
+            background-color: #3e3e42;
+            color: white;
+        }
+
+        /* About Us Popup (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-card {
+            background: #252526;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 12px;
+            overflow: hidden;
+            color: #e0e0e0;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            border: 1px solid #444;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-body h2 {
+            color: #00bcd4;
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .modal-body p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #bbbbbb;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            margin-bottom: 25px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #00bcd4;
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+
+        .dev-section {
+            display: flex;
+            gap: 15px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+            align-items: flex-start;
+        }
+
+        .dev-info {
+            flex: 1;
+        }
+
+        .dev-info h3 {
+            color: #00bcd4;
+            margin: 0 0 5px 0;
+            font-size: 16px;
+        }
+
+        .dev-info div {
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #dddddd;
+        }
+
+        .dev-photo {
+            width: 100px;
+            height: 120px;
+            background-color: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #555;
+        }
+
+        .dev-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.9);
+        }
+
+        .web-link {
+            color: #00bcd4;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Overlay for Sidebar */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active { display: block; }
+
+        /* Navbar Buttons */
         .nav-right {
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        /* Toolbar Buttons */
-        .btn {
+        .btn-clear {
+            background-color: #f44336;
             border: none;
+            color: white;
             padding: 8px 15px;
             font-size: 14px;
             border-radius: 4px;
@@ -73,23 +282,18 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: 0.3s;
-            color: white;
         }
-
-        .btn-open { background-color: #607d8b; }
-        .btn-open:hover { background-color: #546e7a; }
-
-        .btn-save { background-color: #ff9800; }
-        .btn-save:hover { background-color: #f57c00; }
-
-        .btn-clear { background-color: #f44336; }
         .btn-clear:hover { background-color: #d32f2f; }
 
         .run-btn {
             background-color: #4caf50;
+            border: none;
+            color: white;
             padding: 8px 25px;
             font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
         }
         .run-btn:hover { background-color: #45a049; }
 
@@ -134,7 +338,6 @@
             line-height: 1.5;
             user-select: none;
             border-right: 1px solid #333;
-            overflow: hidden;
         }
 
         #code-editor {
@@ -167,7 +370,6 @@
             padding: 8px 15px;
             font-size: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         #terminal-output {
@@ -181,53 +383,10 @@
             outline: none;
         }
 
-        /* Hidden input for terminal interaction */
         #terminal-input-hidden {
             position: absolute;
             opacity: 0;
             pointer-events: none;
-        }
-
-        /* About Us Overlay */
-        #about-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .about-content {
-            background-color: #252526;
-            padding: 35px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
-            border: 1px solid #444;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-
-        .about-content h1 { color: #00bcd4; margin-top: 0; }
-        .about-content p { line-height: 1.7; color: #cccccc; margin: 15px 0; }
-        
-        .close-btn {
-            margin-top: 25px;
-            background-color: #00bcd4;
-            color: #1e1e1e;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
         }
 
         .cursor {
@@ -241,104 +400,110 @@
 
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* Mobile Adjustments */
-        .mobile-tabs {
-            display: none;
-            background-color: #252526;
-            border-bottom: 1px solid #333;
-        }
-
-        .mobile-tabs button {
-            flex: 1;
-            padding: 12px;
-            background: none;
-            border: none;
-            color: #aaa;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 14px;
-            border-bottom: 2px solid transparent;
-        }
-
-        .mobile-tabs button.active {
-            color: #00bcd4;
-            border-bottom: 2px solid #00bcd4;
-            background-color: #2d2d30;
-        }
-
+        /* Responsive Settings */
         @media (max-width: 900px) {
             .mobile-tabs { display: flex; }
             .workspace { position: relative; }
-            .editor-container, .terminal-container {
+            
+            .editor-container { 
                 position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                border-right: none;
-                display: none;
-            }
-            .editor-container.active, .terminal-container.active {
+                top: 0; left: 0; width: 100%; height: 100%;
+                z-index: 10;
                 display: flex;
+                border-right: none;
             }
             
-            /* Mobile button behavior: Hide text for some buttons */
-            .btn span {
-                display: none;
+            .terminal-container { 
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+                z-index: 5;
             }
-            .run-btn span {
-                display: inline; /* Keep text for RUN button */
-            }
-            .btn {
-                padding: 8px 12px;
-            }
-            .logo {
-                font-size: 1rem;
-            }
+
+            /* Toggle Visibility based on state */
+            body.show-terminal .editor-container { z-index: 5; visibility: hidden; }
+            body.show-terminal .terminal-container { z-index: 10; visibility: visible; }
+            
+            .btn-clear span, .run-btn span { display: none; }
         }
     </style>
 </head>
-<body>
+<body class="show-editor">
 
     <input type="file" id="file-input" style="display: none;" accept=".pas,.txt" onchange="handleFileSelect(event)">
 
-    <div id="about-overlay" onclick="toggleAbout(event)">
-        <div class="about-content" onclick="event.stopPropagation()">
-            <h1>අප පිළිබඳව</h1>
-            <p>GK PASCAL IDE යනු Pascal භාෂාව හදාරන සිසුන් වෙනුවෙන් නිර්මාණය කරන ලද සැහැල්ලු වෙබ් මෙවලමකි.</p>
-            <div style="font-size: 13px; color: #777; margin-top: 20px;">
-                Version 2.7 | Developer: GK Team<br>
-                © 2026 සියලුම හිමිකම් ඇවිරිණි.
+    <!-- Sidebar Menu -->
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <span>GK PASCAL IDE</span>
+            <button class="menu-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-item" onclick="document.getElementById('file-input').click(); toggleSidebar();">
+                <span>📂</span> Open File
             </div>
-            <button class="close-btn" onclick="toggleAbout()">වසා දමන්න</button>
+            <div class="sidebar-item" onclick="saveCode(); toggleSidebar();">
+                <span>💾</span> Save Program
+            </div>
+            <div class="sidebar-item" onclick="showAboutModal(); toggleSidebar();">
+                <span>ℹ️</span> About Us
+            </div>
         </div>
     </div>
 
+    <!-- About Us Modal -->
+    <div id="about-modal" class="modal-overlay" onclick="hideAboutModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>About Us</span>
+                <span style="cursor: pointer;" onclick="hideAboutModal()">✕</span>
+            </div>
+            <div class="modal-body">
+                <h2>Welcome to GK PASCAL IDE</h2>
+                <p>මෙම මෘදුකාංගය නිර්මාණය කර ඇත්තේ පාසල් යන සිසුන්ට ICT විෂයේ ඇති පස්කල් (Pascal) කේතයන් පරිගණකයක් නැති උවත් Smart Phone එකකින් උවත් ඉතා පහසුවෙන් සහ නිවැරදිව පරීක්ෂා කර Output එක බැලීමට සහ ඉගෙන ගැනීමටයි.</p>
+                
+                <div class="feature-list">
+                    <div class="feature-item">✓ Real-time Rendering</div>
+                    <div class="feature-item">✓ Simple & User-friendly UI</div>
+                    <div class="feature-item">✓ Educational Support</div>
+                </div>
+
+                <div class="dev-section">
+                    <div class="dev-info">
+                        <h3>Developer</h3>
+                        <div><b>Name:</b> Gayan Karunathilaka (ICT Sir)</div>
+                        <div><b>Version:</b> 1.1 (2026)</div>
+                        <div style="margin-top: 10px; font-size: 12px; color: #aaa;">මාගේ ICT පන්ති වලට සම්බන්ධ වීමට 071 327 6655 අංකයට <b>class</b> ලෙස කෙටි පණිවිඩයක් යොමු කරන්න.</div>
+                        <div style="margin-top: 10px;">🔴 Web: <a href="#" class="web-link">Class Website</a></div>
+                    </div>
+                    <div class="dev-photo">
+                        <img src="https://via.placeholder.com/100x120/333/00bcd4?text=GK+Sir" alt="Developer Photo">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navbar -->
     <div class="navbar">
         <div class="nav-left">
-            <div class="menu-icon" onclick="toggleAbout()">
-                <div></div>
-                <div></div>
-                <div></div>
-            </div>
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
             <div class="logo">GK PASCAL IDE</div>
         </div>
-        
         <div class="nav-right">
-            <button class="btn btn-open" onclick="document.getElementById('file-input').click()">📂 <span>Open</span></button>
-            <button class="btn btn-save" onclick="saveCode()">💾 <span>Save</span></button>
-            <button class="btn btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
-            <button class="btn run-btn" onclick="executePascal()">▶ <span>RUN</span></button>
+            <button class="btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
+            <button class="run-btn" onclick="executePascal()">▶ <span>RUN</span></button>
         </div>
     </div>
 
+    <!-- Mobile Tabs -->
     <div class="mobile-tabs">
-        <button id="tab-editor-btn" class="active" onclick="switchTab('editor')">main.pas</button>
-        <button id="tab-terminal-btn" onclick="switchTab('terminal')">Output</button>
+        <button id="tab-editor" class="mobile-tab-btn active" onclick="switchMobileTab('editor')">EDITOR</button>
+        <button id="tab-terminal" class="mobile-tab-btn" onclick="switchMobileTab('terminal')">TERMINAL</button>
     </div>
 
     <div class="workspace">
-        <div id="editor-view" class="editor-container active">
+        <div id="editor-view" class="editor-container">
             <div class="tab-bar">main.pas</div>
             <div class="editor-wrapper">
                 <div id="line-numbers" class="line-numbers">1</div>
@@ -358,12 +523,45 @@
         const lineNumbers = document.getElementById('line-numbers');
         const terminalOutput = document.getElementById('terminal-output');
         const hiddenInput = document.getElementById('terminal-input-hidden');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const aboutModal = document.getElementById('about-modal');
 
         let isWaitingForInput = false;
         let inputResolver = null;
         let currentInputBuffer = "";
+        let terminalHistory = "";
 
         const defaultCode = "program Calc;\nvar x, y, sum : integer;\nbegin\n  write('Enter first number : ');\n  readln(x);\n  write('Enter second number : ');\n  readln(y);\n  sum := x + y;\n  writeln('Sum = ', sum);\nend.";
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function showAboutModal() {
+            aboutModal.style.display = 'flex';
+        }
+
+        function hideAboutModal() {
+            aboutModal.style.display = 'none';
+        }
+
+        function switchMobileTab(tab) {
+            const body = document.body;
+            const editorBtn = document.getElementById('tab-editor');
+            const terminalBtn = document.getElementById('tab-terminal');
+
+            if (tab === 'editor') {
+                body.classList.remove('show-terminal');
+                editorBtn.classList.add('active');
+                terminalBtn.classList.remove('active');
+            } else {
+                body.classList.add('show-terminal');
+                terminalBtn.classList.add('active');
+                editorBtn.classList.remove('active');
+            }
+        }
 
         function updateLineNumbers() {
             const lines = editor.value.split('\n');
@@ -382,7 +580,6 @@
         editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
         editor.addEventListener('input', updateLineNumbers);
 
-        // Terminal Input Handling
         terminalOutput.addEventListener('click', () => {
             if (isWaitingForInput) hiddenInput.focus();
         });
@@ -390,7 +587,7 @@
         hiddenInput.addEventListener('input', (e) => {
             if (!isWaitingForInput) return;
             currentInputBuffer = hiddenInput.value;
-            renderTerminalWithInput();
+            renderTerminal();
         });
 
         hiddenInput.addEventListener('keydown', (e) => {
@@ -398,21 +595,16 @@
                 const value = hiddenInput.value;
                 isWaitingForInput = false;
                 hiddenInput.value = "";
+                terminalHistory += currentInputBuffer + "\n";
                 currentInputBuffer = "";
-                
-                // Replace cursor with the finalized input and a newline
-                const cursorHtml = '<span class="cursor"></span>';
-                terminalOutput.innerHTML = terminalOutput.innerHTML.replace(cursorHtml, value + "\n" + cursorHtml);
-                terminalOutput.scrollTop = terminalOutput.scrollHeight;
-                
+                renderTerminal();
                 if (inputResolver) inputResolver(value);
             }
         });
 
-        function renderTerminalWithInput() {
-            const baseText = terminalOutput.dataset.baseText || "";
+        function renderTerminal() {
             const cursorHtml = '<span class="cursor"></span>';
-            terminalOutput.innerHTML = baseText + currentInputBuffer + cursorHtml;
+            terminalOutput.innerHTML = terminalHistory + currentInputBuffer + cursorHtml;
             terminalOutput.scrollTop = terminalOutput.scrollHeight;
         }
 
@@ -420,26 +612,10 @@
             isWaitingForInput = true;
             currentInputBuffer = "";
             hiddenInput.value = "";
-            // Store the current terminal state without the cursor as the base for real-time typing
-            terminalOutput.dataset.baseText = terminalOutput.innerHTML.replace('<span class="cursor"></span>', '');
-            renderTerminalWithInput();
             hiddenInput.focus();
-            
             return new Promise((resolve) => {
                 inputResolver = resolve;
             });
-        }
-
-        function toggleAbout() {
-            const overlay = document.getElementById('about-overlay');
-            overlay.style.display = (overlay.style.display === 'flex') ? 'none' : 'flex';
-        }
-
-        function switchTab(tab) {
-            document.getElementById('editor-view').classList.toggle('active', tab === 'editor');
-            document.getElementById('terminal-view').classList.toggle('active', tab === 'terminal');
-            document.getElementById('tab-editor-btn').classList.toggle('active', tab === 'editor');
-            document.getElementById('tab-terminal-btn').classList.toggle('active', tab === 'terminal');
         }
 
         function clearCode() {
@@ -470,13 +646,15 @@
         }
 
         async function executePascal() {
+            // Auto switch to terminal tab on mobile when running
+            if (window.innerWidth <= 900) {
+                switchMobileTab('terminal');
+            }
+
             const fullCode = editor.value;
-            const output = document.getElementById('terminal-output');
-            const cursorHtml = '<span class="cursor"></span>';
-            
-            if (window.innerWidth <= 900) switchTab('terminal');
-            
-            output.innerHTML = "Compiling...\n------------------------------\n" + cursorHtml;
+            terminalHistory = "Compiling...\n------------------------------\n";
+            currentInputBuffer = "";
+            renderTerminal();
 
             await new Promise(r => setTimeout(r, 400));
 
@@ -488,8 +666,7 @@
                 let line = codeLines[i].trim();
                 let lineNumber = i + 1;
 
-                if (!line || 
-                    line.toLowerCase().startsWith('program') || 
+                if (!line || line.toLowerCase().startsWith('program') || 
                     line.toLowerCase().startsWith('var') ||
                     line.toLowerCase() === 'begin' || 
                     line.toLowerCase() === 'end.') continue;
@@ -497,7 +674,6 @@
                 try {
                     let processingLine = line.endsWith(';') ? line.slice(0, -1).trim() : line;
 
-                    // Case: read/readln
                     let readMatch = processingLine.match(/read(ln)?\s*\((.*)\)/i);
                     if (readMatch) {
                         let varNames = readMatch[2].split(',').map(v => v.trim());
@@ -508,7 +684,6 @@
                         continue;
                     }
 
-                    // Case: write/writeln
                     let writeMatch = processingLine.match(/write(ln)?\s*\((.*)\)/i);
                     if (writeMatch) {
                         let content = writeMatch[2].trim();
@@ -535,42 +710,32 @@
                             }
                         });
                         
-                        const suffix = writeMatch[1] ? "\n" : "";
-                        output.innerHTML = output.innerHTML.replace(cursorHtml, outputLine + suffix + cursorHtml);
-                        output.scrollTop = output.scrollHeight;
+                        terminalHistory += outputLine + (writeMatch[1] ? "\n" : "");
+                        renderTerminal();
                         continue;
                     }
 
-                    // Case: Assignment
                     let assignMatch = processingLine.match(/^(\w+)\s*:=\s*(.+)$/);
                     if (assignMatch) {
                         let varName = assignMatch[1].trim();
                         let expression = assignMatch[2].trim();
-                        
                         Object.keys(variables).forEach(v => {
                             expression = expression.replace(new RegExp('\\b' + v + '\\b', 'g'), variables[v]);
                         });
-
-                        let jsExpr = expression.replace(/'/g, '"');
-                        variables[varName] = eval(jsExpr);
+                        variables[varName] = eval(expression.replace(/'/g, '"'));
                         continue;
                     }
-
-                    if (line && !line.startsWith('//') && line.toLowerCase() !== 'begin') {
-                        throw new Error("Syntax");
-                    }
-
                 } catch (e) {
-                    console.error(e);
-                    output.innerHTML = output.innerHTML.replace(cursorHtml, `<span style="color: #ff5555;">දෝෂයකි: Pascal කේතයේ වැරැද්දක් පවතී.\nපේළි අංකය: ${lineNumber}</span>\n\nC:\\Users\\Pascal\\Documents> ` + cursorHtml);
+                    terminalHistory += `<span style="color: #ff5555;">දෝෂයකි: Pascal කේතයේ වැරැද්දක් පවතී.\nපේළි අංකය: ${lineNumber}</span>\n\nC:\\Users\\Pascal\\Documents> `;
+                    renderTerminal();
                     hasError = true;
                     break;
                 }
             }
 
             if (!hasError) {
-                output.innerHTML = output.innerHTML.replace(cursorHtml, "\n------------------------------\nC:\\Users\\Pascal\\Documents> " + cursorHtml);
-                output.scrollTop = output.scrollHeight;
+                terminalHistory += "\n------------------------------\nC:\\Users\\Pascal\\Documents> ";
+                renderTerminal();
             }
         }
     </script>
