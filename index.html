@@ -1,165 +1,291 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="si">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GKHTML Code Runner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pascal Web Editor & Runner</title>
     <style>
-        /* මූලික සැකසුම් (Basic Reset) */
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #1e1e1e;
             color: #ffffff;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
-        /* ශීර්ෂය (Header) */
-        header {
-            background-color: #007acc;
-            padding: 5px 10px;
+        /* Top Navigation Bar - FIXED */
+        .navbar {
+            background-color: #333;
+            padding: 10px 20px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            align-items: center;
-            height: 65px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            z-index: 100;
+            border-bottom: 1px solid #444;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        .header-left {
+        .nav-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 15px;
         }
 
-        .menu-icon {
+        .logo {
+            font-weight: bold;
+            color: #00bcd4;
+            font-size: 1.2rem;
+        }
+
+        .menu-btn {
             cursor: pointer;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
             padding: 5px;
             display: flex;
             align-items: center;
-        }
-
-        .app-title {
-            font-size: 14px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 5px;
-            flex-wrap: nowrap;
-        }
-
-        button {
-            padding: 6px 10px;
-            border: none;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 11px;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-run { background-color: #28a745; color: white; }
-        .btn-save { background-color: #ff9800; color: white; }
-        .btn-open { background-color: #607d8b; color: white; }
-        .btn-clear { background-color: #dc3545; color: white; }
-
-        button:active { opacity: 0.8; }
-
-        /* Tabs Navigation */
-        .tabs {
-            display: flex;
-            background-color: #2d2d2d;
-            border-bottom: 1px solid #3e3e3e;
-            padding: 5px 10px;
-            gap: 5px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 8px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: #ffffff;
-            transition: 0.3s;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            gap: 8px;
-            border: 1px solid #444;
+            transition: 0.3s;
         }
 
-        .tab.active {
-            background-color: #3e4451;
-            border-color: #666;
+        .menu-btn:hover {
+            color: #00bcd4;
         }
 
-        /* Editor Section with Line Numbers */
-        .container {
+        /* Mobile View Tabs */
+        .mobile-tabs {
+            display: none;
+            background-color: #252526;
+            border-bottom: 1px solid #444;
+            position: sticky;
+            top: 51px;
+            z-index: 999;
+        }
+
+        .mobile-tab-btn {
             flex: 1;
-            position: relative;
-            overflow: hidden;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: #aaa;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
         }
 
-        .content-section {
-            position: absolute;
+        .mobile-tab-btn.active {
+            color: #00bcd4;
+            border-bottom: 2px solid #00bcd4;
+            background-color: #2d2d30;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background-color: #252526;
+            transition: 0.3s ease;
+            z-index: 2000;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background-color: #333;
+            font-weight: bold;
+            color: #00bcd4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #ccc;
+        }
+
+        .sidebar-item:hover {
+            background-color: #3e3e42;
+            color: white;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            background: rgba(0, 0, 0, 0.85);
             display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            padding: 20px;
         }
 
-        .content-section.active {
+        .modal-card {
+            background: #252526;
+            width: 100%;
+            max-width: 480px;
+            border-radius: 12px;
+            overflow: hidden;
+            color: #e0e0e0;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
+            border: 1px solid #444;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px 20px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1500;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-clear {
+            background-color: #f44336;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .run-btn {
+            background-color: #4caf50;
+            border: none;
+            color: white;
+            padding: 8px 25px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Workspace */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #333;
+            overflow: hidden;
+        }
+
+        .tab-bar {
+            background-color: #252526;
+            padding: 8px 15px;
+            font-size: 13px;
+            color: #aaa;
+            border-bottom: 1px solid #1e1e1e;
         }
 
         .editor-wrapper {
+            flex: 1;
             display: flex;
-            width: 100%;
-            height: 100%;
             background-color: #1e1e1e;
+            overflow: hidden;
+            position: relative;
         }
 
         .line-numbers {
-            width: 40px;
-            padding: 15px 5px;
-            text-align: right;
-            background-color: #252526;
+            width: 45px;
+            background-color: #1e1e1e;
             color: #858585;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            user-select: none;
+            padding: 20px 5px;
+            text-align: right;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
             line-height: 1.5;
+            user-select: none;
             border-right: 1px solid #333;
             overflow: hidden;
         }
 
-        textarea {
+        #code-editor {
             flex: 1;
-            height: 100%;
             background-color: #1e1e1e;
             color: #d4d4d4;
             border: none;
-            padding: 15px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
+            padding: 20px 15px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
             resize: none;
             outline: none;
             line-height: 1.5;
@@ -167,324 +293,418 @@
             overflow: auto;
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background-color: white;
-        }
-
-        /* About Us Popup Overlay */
-        #about-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-
-        .about-modal {
-            background: #fff;
-            color: #333;
-            width: 100%;
-            max-width: 450px;
-            max-height: 90vh;
-            border-radius: 12px;
-            overflow: hidden;
+        .terminal-container {
+            width: 40%;
+            background-color: #000;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            animation: popupAnim 0.3s ease-out;
+            position: relative;
         }
 
-        @keyframes popupAnim {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .terminal-header {
+            background-color: #333;
+            color: #ddd;
+            padding: 8px 15px;
+            font-size: 12px;
+            text-transform: uppercase;
         }
 
-        .about-modal-header {
-            background-color: #1976d2;
-            color: white;
+        #terminal-output {
+            flex: 1;
             padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .close-btn {
-            cursor: pointer;
-            font-size: 24px;
-            line-height: 1;
-        }
-
-        .about-content {
-            padding: 20px;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            color: #00ff00;
             overflow-y: auto;
-            line-height: 1.6;
+            white-space: pre-wrap;
+            outline: none;
         }
 
-        .about-title {
-            color: #1976d2;
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
+        #terminal-input-hidden {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            color: #1976d2;
-            font-weight: 500;
+        .cursor {
+            display: inline-block;
+            width: 8px;
+            height: 15px;
+            background-color: #00ff00;
+            animation: blink 1s infinite;
+            vertical-align: middle;
         }
 
-        .developer-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
+        @keyframes blink { 50% { opacity: 0; } }
+
+        @media (max-width: 900px) {
+            .mobile-tabs { display: flex; }
+            .workspace { position: relative; }
+            .editor-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; border-right: none; }
+            .terminal-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
+            body.show-terminal .editor-container { z-index: 5; visibility: hidden; }
+            body.show-terminal .terminal-container { z-index: 10; visibility: visible; }
         }
-
-        .dev-info p {
-            margin-bottom: 5px;
-            font-size: 13px;
-        }
-
-        .dev-photo {
-            width: 90px;
-            height: 110px;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 1px solid #ddd;
-        }
-
-        .link-text {
-            color: #1976d2;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .check-mark { color: #1976d2; font-weight: bold; }
-        .red-dot { color: #f44336; margin-right: 5px; }
-
-        /* Hidden File Input */
-        #file-input { display: none; }
-
     </style>
 </head>
-<body>
 
-    <header>
-        <div class="header-left">
-            <div class="menu-icon" onclick="toggleAbout()">
-                <svg width="24" height="24" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 7H26M4 15H26M4 23H26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
+<body class="show-editor">
+
+    <input type="file" id="file-input" style="display: none;" accept=".pas,.txt" onchange="handleFileSelect(event)">
+
+    <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <span>GK PASCAL IDE</span>
+            <button class="menu-btn" onclick="toggleSidebar()">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <div class="sidebar-item" onclick="document.getElementById('file-input').click(); toggleSidebar();">
+                <span>📂</span> Open File
             </div>
-            <div class="app-title">GK HTML Code Runner</div>
-        </div>
-        
-        <div class="header-actions">
-            <button class="btn-open" onclick="triggerFileOpen()">📂 Open</button>
-            <button class="btn-save" onclick="saveAsHtml()">💾 Save</button>
-            <button class="btn-clear" onclick="clearCode()">🗑️ Clear</button>
-            <button class="btn-run" onclick="runAndSwitch()">▶ Run</button>
-        </div>
-    </header>
-
-    <input type="file" id="file-input" accept=".html,.htm,.txt" onchange="openFile(event)">
-
-    <!-- Tab Buttons -->
-    <div class="tabs">
-        <div id="tab-code" class="tab active" onclick="switchTab('code')">
-            <span>&lt;&gt; Code</span>
-        </div>
-        <div id="tab-output" class="tab" onclick="switchTab('output')">
-            <span>📺 Output</span>
+            <div class="sidebar-item" onclick="saveCode(); toggleSidebar();">
+                <span>💾</span> Save Program
+            </div>
+            <div class="sidebar-item" onclick="showAboutModal(); toggleSidebar();">
+                <span>ℹ️</span> About Us
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <!-- Editor with Line Numbers -->
-        <div id="section-code" class="content-section active">
-            <div class="editor-wrapper">
-                <div class="line-numbers" id="line-numbers">1</div>
-                <textarea id="code-input" placeholder="ඔබේ HTML කේත මෙහි ලියන්න..." spellcheck="false" oninput="updateLineNumbers()" onscroll="syncScroll()"></textarea>
-            </div>
-        </div>
-
-        <div id="section-output" class="content-section">
-            <iframe id="preview-window"></iframe>
-        </div>
-    </div>
-
-    <!-- About Us Popup Overlay -->
-    <div id="about-overlay" onclick="closeOnOutsideClick(event)">
-        <div class="about-modal" onclick="event.stopPropagation()">
-            <div class="about-modal-header">
+    <div id="about-modal" class="modal-overlay" onclick="hideAboutModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
                 <span>About Us</span>
-                <div class="close-btn" onclick="toggleAbout()">×</div>
+                <span style="cursor: pointer;" onclick="hideAboutModal()">✕</span>
             </div>
-            
-            <div class="about-content">
-                <div class="about-title">Welcome to GK HTML Code Runner</div>
-                <p style="margin-bottom: 15px; color: #555; font-size: 14px;">මෙම මෘදුකාංගය නිර්මාණය කර ඇත්තේ පාසල් යන සිසුන්ට ICT විෂයේ ඇති වෙබ් පිටු නිර්මාණය කිරීමේදී භාවිත වන HTML, CSS, JS කේත පරිගණකයක් නැති උවත් Smart Phone එකකින් උවත් ඉතා පහසුවෙන් සහ නිවැරදිව පරීක්ෂා කර Output එක බැලීමට සහ ඉගෙන ගැනීමටයි.</p>
-                
-                <div class="feature-item">
-                    <span class="check-mark">✓</span> Real-time Rendering
-                </div>
-                <div class="feature-item">
-                    <span class="check-mark">✓</span> Simple & User-friendly UI
-                </div>
-                <div class="feature-item">
-                    <span class="check-mark">✓</span> Educational Support
-                </div>
+            <div class="modal-body">
+                <h2>Welcome to GK PASCAL IDE 4.1+</h2>
+                <p>පස්කල් කේතයන් පහසුවෙන් ක්‍රියාත්මක කර බැලීමට මෙම මෘදුකාංගය භාවිතා කරන්න.</p>
+                <p>දැන් For Loops සමඟ DOWNTO සහ Nested IF-ELSE පහසුකම නිවැරදිව ඇතුළත් කර ඇත.</p>
+            </div>
+        </div>
+    </div>
 
-                <div class="developer-section">
-                    <div class="dev-info">
-                        <h4 style="color: #1976d2; margin-bottom: 5px;">Developer</h4>
-                        <p><strong>Name:</strong> Gayan Karunathilaka (ICT Sir)</p>
-                        <p><strong>Version:</strong> 1.0 (2026)</p>
-                        <p style="margin-top: 10px; font-size: 12px; color: #444;">මාගේ ICT පන්ති වලට සම්බන්ධ වීමට 071 327 6655 අංකයට <b>class</b> ලෙස කෙටි පණිවිඩයක් යොමු කරන්න.</p>
-                        <p style="margin-top: 8px;">
-                            <span class="red-dot">●</span> Web: <a href="https://sites.google.com/view/gayan-karunathilaka-ict-class/home" target="_blank" class="link-text">Class Website</a>
-                        </p>
-                    </div>
-                    <img src="sir.jpg" alt="Developer" class="dev-photo" onerror="this.src='https://via.placeholder.com/90x110?text=ICT+Sir'">
-                </div>
+    <div class="navbar">
+        <div class="nav-left">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            <div class="logo">GK PASCAL IDE 4.1</div>
+        </div>
+        <div class="nav-right">
+            <button class="btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
+            <button class="run-btn" onclick="executePascal()">▶ <span>RUN</span></button>
+        </div>
+    </div>
+
+    <div class="mobile-tabs">
+        <button id="tab-editor" class="mobile-tab-btn active" onclick="switchMobileTab('editor')">EDITOR</button>
+        <button id="tab-terminal" class="mobile-tab-btn" onclick="switchMobileTab('terminal')">TERMINAL</button>
+    </div>
+
+    <div class="workspace">
+        <div id="editor-view" class="editor-container">
+            <div class="tab-bar">main.pas</div>
+            <div class="editor-wrapper">
+                <div id="line-numbers" class="line-numbers">1</div>
+                <textarea id="code-editor" spellcheck="false"></textarea>
             </div>
+        </div>
+
+        <div id="terminal-view" class="terminal-container">
+            <div class="terminal-header">Terminal Output</div>
+            <div id="terminal-output" tabindex="0">C:\Users\Pascal\Documents> <span class="cursor"></span></div>
+            <input type="text" id="terminal-input-hidden">
         </div>
     </div>
 
     <script>
-        const textarea = document.getElementById('code-input');
+        const editor = document.getElementById('code-editor');
         const lineNumbers = document.getElementById('line-numbers');
-        const iframe = document.getElementById('preview-window');
-        const aboutOverlay = document.getElementById('about-overlay');
-        const fileInput = document.getElementById('file-input');
+        const terminalOutput = document.getElementById('terminal-output');
+        const hiddenInput = document.getElementById('terminal-input-hidden');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
 
-        window.onload = function() {
-            const savedCode = localStorage.getItem('myHtmlCode');
-            if (savedCode) {
-                textarea.value = savedCode;
-                renderOutput();
-                updateLineNumbers();
+        let isWaitingForInput = false;
+        let inputResolver = null;
+        let currentInputBuffer = "";
+        let terminalHistory = "";
+
+        const defaultCode = "PROGRAM ForLoopDownToExample;\nVAR\n  i: integer;\nBEGIN\n  FOR i := 5 DOWNTO 1 DO\n    writeln(i);\nEND.";
+
+        function toggleSidebar() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
+        function showAboutModal() { document.getElementById('about-modal').style.display = 'flex'; }
+        function hideAboutModal() { document.getElementById('about-modal').style.display = 'none'; }
+
+        function switchMobileTab(tab) {
+            if (tab === 'editor') {
+                document.body.classList.remove('show-terminal');
+                document.getElementById('tab-editor').classList.add('active');
+                document.getElementById('tab-terminal').classList.remove('active');
+            } else {
+                document.body.classList.add('show-terminal');
+                document.getElementById('tab-terminal').classList.add('active');
+                document.getElementById('tab-editor').classList.remove('active');
             }
+        }
+
+        function updateLineNumbers() {
+            const lines = editor.value.split('\n');
+            let displayNumbers = '';
+            for (let i = 1; i <= lines.length; i++) displayNumbers += i + '\n';
+            lineNumbers.innerText = displayNumbers;
+            lineNumbers.scrollTop = editor.scrollTop;
+        }
+
+        window.onload = function () {
+            editor.value = defaultCode;
+            updateLineNumbers();
         };
 
-        // --- Line Number Logic ---
-        function updateLineNumbers() {
-            const lines = textarea.value.split('\n').length;
-            let lineNumHtml = '';
-            for (let i = 1; i <= lines; i++) {
-                lineNumHtml += i + '<br>';
+        editor.addEventListener('scroll', () => { lineNumbers.scrollTop = editor.scrollTop; });
+        editor.addEventListener('input', updateLineNumbers);
+
+        terminalOutput.addEventListener('click', () => { if (isWaitingForInput) hiddenInput.focus(); });
+        hiddenInput.addEventListener('input', () => { if (isWaitingForInput) { currentInputBuffer = hiddenInput.value; renderTerminal(); } });
+        hiddenInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && isWaitingForInput) {
+                const val = hiddenInput.value;
+                isWaitingForInput = false;
+                hiddenInput.value = "";
+                terminalHistory += currentInputBuffer + "\n";
+                currentInputBuffer = "";
+                renderTerminal();
+                if (inputResolver) inputResolver(val);
             }
-            lineNumbers.innerHTML = lineNumHtml;
-            syncScroll();
+        });
+
+        function renderTerminal() {
+            terminalOutput.innerHTML = terminalHistory + currentInputBuffer + '<span class="cursor"></span>';
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
         }
 
-        function syncScroll() {
-            lineNumbers.scrollTop = textarea.scrollTop;
+        async function getTerminalInput() {
+            isWaitingForInput = true;
+            hiddenInput.focus();
+            return new Promise(resolve => { inputResolver = resolve; });
         }
 
-        function switchTab(target) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById('tab-' + target).classList.add('active');
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.getElementById('section-' + target).classList.add('active');
-            if(target === 'output') renderOutput();
-            else updateLineNumbers(); // Ensure lines are correct when switching back
-        }
-
-        function renderOutput() {
-            const code = textarea.value;
-            const doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(code);
-            doc.close();
-            localStorage.setItem('myHtmlCode', code);
-        }
-
-        function runAndSwitch() {
-            renderOutput();
-            switchTab('output');
-        }
-
-        function saveAsHtml() {
-            const code = textarea.value;
-            if (!code.trim()) {
-                alert("පළමුව කේතයක් ඇතුළත් කරන්න.");
-                return;
-            }
-            const fileName = prompt("ගොනුවට නමක් ලබා දෙන්න (e.g. index):", "mysite");
-            if (fileName === null) return;
-            const blob = new Blob([code], { type: "text/html" });
+        function clearCode() { if (confirm("කේතය මකා දැමීමට අවශ්‍යද?")) { editor.value = ""; updateLineNumbers(); } }
+        function saveCode() {
+            const blob = new Blob([editor.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = fileName + ".html";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'program.pas'; a.click();
         }
 
-        function triggerFileOpen() {
-            fileInput.click();
-        }
-
-        function openFile(event) {
+        function handleFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                textarea.value = e.target.result;
-                renderOutput();
-                updateLineNumbers();
-                switchTab('code');
-            };
+            reader.onload = (e) => { editor.value = e.target.result; updateLineNumbers(); };
             reader.readAsText(file);
-            event.target.value = "";
         }
 
-        function clearCode() {
-            if(confirm("සියලුම කේත මකා දමන්නද?")) {
-                textarea.value = "";
-                const doc = iframe.contentDocument || iframe.contentWindow.document;
-                doc.open();
-                doc.write(""); 
-                doc.close();
-                localStorage.removeItem('myHtmlCode');
-                updateLineNumbers();
-                switchTab('code');
+        async function executePascal() {
+            if (window.innerWidth <= 900) switchMobileTab('terminal');
+            terminalHistory = "Compiling...\n------------------------------\n";
+            renderTerminal();
+
+            const fullCode = editor.value;
+            let cleanCode = fullCode.replace(/\{[\s\S]*?\}/g, '');
+            let rawLines = cleanCode.split('\n').map(l => l.trim()).filter(l => l !== "");
+            
+            let lines = rawLines.map(l => {
+                let temp = l;
+                ['PROGRAM', 'VAR', 'BEGIN', 'END', 'IF', 'THEN', 'ELSE', 'FOR', 'TO', 'DOWNTO', 'DO', 'WHILE', 'REPEAT', 'UNTIL', 'WRITE', 'WRITELN', 'READ', 'READLN'].forEach(k => {
+                    const regex = new RegExp('^' + k + '\\b', 'i');
+                    temp = temp.replace(regex, k);
+                });
+                return temp;
+            });
+
+            let vars = {};
+            let varTypes = {};
+
+            let varSectionMatch = cleanCode.match(/VAR\s+([\s\S]+?)(?=\s+BEGIN)/i);
+            if (varSectionMatch) {
+                varSectionMatch[1].split(';').forEach(line => {
+                    let parts = line.split(':');
+                    if (parts.length > 1) {
+                        let names = parts[0].split(',');
+                        let type = parts[1].trim().toLowerCase();
+                        names.forEach(n => {
+                            let upName = n.trim().toUpperCase();
+                            if (upName) {
+                                varTypes[upName] = type;
+                                vars[upName] = (type === 'char' || type === 'string') ? "" : (type === 'real' ? 0.0 : 0);
+                            }
+                        });
+                    }
+                });
             }
-        }
 
-        function toggleAbout() {
-            const current = aboutOverlay.style.display;
-            aboutOverlay.style.display = (current === "flex") ? "none" : "flex";
-        }
+            const evaluateExpr = (expr) => {
+                if (!expr) return 0;
+                let processed = expr.trim();
+                processed = processed.replace(/'([^']*)'/g, '"$1"')
+                    .replace(/<>/g, '!=')
+                    .replace(/(^|[^<>:])=/g, '$1==')
+                    .replace(/\bDIV\b/gi, '/')
+                    .replace(/\bMOD\b/gi, '%')
+                    .replace(/\bAND\b/gi, '&&')
+                    .replace(/\bOR\b/gi, '||');
 
-        function closeOnOutsideClick(e) {
-            if (e.target === aboutOverlay) {
-                toggleAbout();
+                Object.keys(vars).forEach(v => {
+                    const regex = new RegExp('\\b' + v + '\\b', 'gi');
+                    let val = vars[v];
+                    processed = processed.replace(regex, typeof val === 'string' ? `"${val}"` : val);
+                });
+
+                try { return eval(processed); } catch (e) { return 0; }
+            };
+
+            const runStatement = async (line) => {
+                let cmd = line.replace(/;$/, '').trim();
+                if (!cmd || cmd.toUpperCase() === 'END') return;
+
+                if (cmd.toUpperCase().startsWith('WRITE')) {
+                    let m = cmd.match(/^(?:WRITE|WRITELN)\s*\((.*)\)$/i);
+                    if (m) {
+                        let parts = m[1].split(/,(?=(?:(?:[^']*'){2})*[^']*$)/);
+                        let output = "";
+                        parts.forEach(p => {
+                            p = p.trim();
+                            if (p.startsWith("'") && p.endsWith("'")) output += p.slice(1, -1);
+                            else output += evaluateExpr(p);
+                        });
+                        terminalHistory += output + (cmd.toUpperCase().startsWith('WRITELN') ? "\n" : "");
+                        renderTerminal();
+                    }
+                } else if (cmd.toUpperCase().startsWith('READ')) {
+                    let m = cmd.match(/^(?:READ|READLN)\s*\((.*)\)$/i);
+                    if (m) {
+                        let vNames = m[1].split(',').map(v => v.trim());
+                        for (let v of vNames) {
+                            let input = await getTerminalInput();
+                            let up = v.toUpperCase();
+                            vars[up] = (varTypes[up] === 'char' || varTypes[up] === 'string') ? input : Number(input);
+                        }
+                    }
+                } else if (cmd.includes(':=')) {
+                    let parts = cmd.split(':=');
+                    let target = parts[0].trim().toUpperCase();
+                    vars[target] = evaluateExpr(parts[1]);
+                }
+            };
+
+            const getBlock = (idx) => {
+                if (idx >= lines.length) return { size: 0, start: idx, end: idx };
+                let line = lines[idx];
+
+                if (line.toUpperCase() === 'BEGIN') {
+                    let depth = 1, k = idx + 1;
+                    while (k < lines.length && depth > 0) {
+                        if (lines[k].toUpperCase() === 'BEGIN') depth++;
+                        if (lines[k].toUpperCase().startsWith('END')) depth--;
+                        k++;
+                    }
+                    return { size: k - idx, start: idx, end: k };
+                }
+
+                if (line.toUpperCase().startsWith('IF')) {
+                    let size = 1;
+                    let nextIdx = idx + 1;
+                    let thenBlock = getBlock(nextIdx);
+                    size += thenBlock.size;
+                    
+                    let elseIdx = nextIdx + thenBlock.size;
+                    if (elseIdx < lines.length && lines[elseIdx].toUpperCase() === 'ELSE') {
+                        size += 1;
+                        let elseBlock = getBlock(elseIdx + 1);
+                        size += elseBlock.size;
+                    }
+                    return { size: size, start: idx, end: idx + size };
+                }
+
+                if (line.toUpperCase().startsWith('FOR')) {
+                     let size = 1;
+                     let body = getBlock(idx + 1);
+                     size += body.size;
+                     return { size: size, start: idx, end: idx + size };
+                }
+
+                return { size: 1, start: idx, end: idx + 1 };
+            };
+
+            const interpret = async (start, end) => {
+                let i = start;
+                while (i < end) {
+                    let line = lines[i];
+                    if (!line || line.toUpperCase().startsWith('PROGRAM') || line.toUpperCase().startsWith('VAR') || line.toUpperCase() === 'BEGIN' || line.toUpperCase().startsWith('END.')) { i++; continue; }
+
+                    if (line.toUpperCase().startsWith('IF')) {
+                        let condStr = line.match(/IF\s+(.+)\s+THEN/i)?.[1];
+                        let isTrue = evaluateExpr(condStr);
+                        
+                        let thenBlock = getBlock(i + 1);
+                        let elseIdx = (i + 1) + thenBlock.size;
+                        let hasElse = elseIdx < end && lines[elseIdx].toUpperCase() === 'ELSE';
+
+                        if (isTrue) {
+                            await interpret(thenBlock.start, thenBlock.end);
+                        } else if (hasElse) {
+                            let elseBlock = getBlock(elseIdx + 1);
+                            await interpret(elseBlock.start, elseBlock.end);
+                        }
+
+                        i = hasElse ? (elseIdx + 1 + getBlock(elseIdx + 1).size) : elseIdx;
+                        continue;
+                    }
+
+                    if (line.toUpperCase().startsWith('FOR')) {
+                        let isDownto = line.toUpperCase().includes('DOWNTO');
+                        let regex = isDownto ? /FOR\s+(\w+)\s*:=\s*(.+)\s+DOWNTO\s+(.+)\s+DO/i : /FOR\s+(\w+)\s*:=\s*(.+)\s+TO\s+(.+)\s+DO/i;
+                        let m = line.match(regex);
+                        if (m) {
+                            let vName = m[1].toUpperCase();
+                            let startVal = Math.floor(evaluateExpr(m[2]));
+                            let endVal = Math.floor(evaluateExpr(m[3]));
+                            let loopBlock = getBlock(i + 1);
+
+                            if (!isDownto) {
+                                for (let val = startVal; val <= endVal; val++) {
+                                    vars[vName] = val;
+                                    await interpret(loopBlock.start, loopBlock.end);
+                                }
+                            } else {
+                                for (let val = startVal; val >= endVal; val--) {
+                                    vars[vName] = val;
+                                    await interpret(loopBlock.start, loopBlock.end);
+                                }
+                            }
+                            i = loopBlock.end;
+                            continue;
+                        }
+                    }
+
+                    if (line.toUpperCase() === 'ELSE' || line.toUpperCase() === 'END' || line.toUpperCase() === 'END;') { i++; continue; }
+
+                    await runStatement(line);
+                    i++;
+                }
+            };
+
+            try {
+                await interpret(0, lines.length);
+                terminalHistory += "\n------------------------------\nC:\\Users\\Pascal\\Documents> ";
+                renderTerminal();
+            } catch (err) {
+                terminalHistory += "\n<span style='color:red;'>Runtime Error</span>\n";
+                renderTerminal();
             }
         }
     </script>
 </body>
+
 </html>
