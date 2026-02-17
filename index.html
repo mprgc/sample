@@ -380,7 +380,7 @@
             <div class="modal-body">
                 <h2>Welcome to GK PASCAL IDE</h2>
                 <p>පස්කල් කේතයන් පහසුවෙන් ක්‍රියාත්මක කර බැලීමට මෙම මෘදුකාංගය භාවිතා කරන්න.</p>
-                <p>දැන් For, If-Else, Case සහ While/Repeat Loops පහසුකම ඇතුළත් කර ඇත.</p>
+                <p>දැන් For, If-Else, Case සහ While/Repeat Loops මෙන්ම Arrays සඳහා ද සහය දක්වයි.</p>
             </div>
         </div>
     </div>
@@ -525,6 +525,7 @@
 
             let vars = {};
             let varTypes = {};
+            let arrayConfigs = {}; // Store bounds for arrays
 
             let varSectionMatch = cleanCode.match(/VAR\s+([\s\S]+?)(?=\s+BEGIN)/i);
             if (varSectionMatch) {
@@ -532,12 +533,26 @@
                     let parts = line.split(':');
                     if (parts.length > 1) {
                         let names = parts[0].split(',');
-                        let type = parts[1].trim().toLowerCase();
+                        let typeRaw = parts[1].trim().toLowerCase();
+                        
                         names.forEach(n => {
                             let upName = n.trim().toUpperCase();
-                            if (upName) {
-                                varTypes[upName] = type;
-                                vars[upName] = (type === 'char' || type === 'string') ? "" : (type === 'real' ? 0.0 : 0);
+                            if (!upName) return;
+
+                            // Check if it's an array: array[1..5] of integer
+                            let arrayMatch = typeRaw.match(/array\s*\[\s*(\d+)\s*\.\.\s*(\d+)\s*\]\s*of\s*(\w+)/i);
+                            if (arrayMatch) {
+                                let low = parseInt(arrayMatch[1]);
+                                let high = parseInt(arrayMatch[2]);
+                                let baseType = arrayMatch[3].toLowerCase();
+                                arrayConfigs[upName] = { low, high, baseType };
+                                vars[upName] = {}; // Store as object to handle custom indices
+                                for (let i = low; i <= high; i++) {
+                                    vars[upName][i] = (baseType === 'char' || baseType === 'string') ? "" : 0;
+                                }
+                            } else {
+                                varTypes[upName] = typeRaw;
+                                vars[upName] = (typeRaw === 'char' || typeRaw === 'string') ? "" : (typeRaw === 'real' ? 0.0 : 0);
                             }
                         });
                     }
@@ -547,6 +562,17 @@
             const evaluateExpr = (expr) => {
                 if (!expr) return 0;
                 let processed = expr.trim();
+                
+                // Handle Array Access: numbers[i]
+                processed = processed.replace(/(\w+)\s*\[\s*([^\]]+)\s*\]/g, (match, arrName, indexExpr) => {
+                    let upArr = arrName.toUpperCase();
+                    if (vars[upArr] !== undefined && typeof vars[upArr] === 'object') {
+                        let idx = evaluateExpr(indexExpr);
+                        return vars[upArr][idx] !== undefined ? vars[upArr][idx] : 0;
+                    }
+                    return match;
+                });
+
                 processed = processed.replace(/'([^']*)'/g, '"$1"')
                     .replace(/<>/g, '!=')
                     .replace(/(^|[^<>:])=/g, '$1==')
@@ -555,10 +581,13 @@
                     .replace(/\bAND\b/gi, '&&')
                     .replace(/\bOR\b/gi, '||');
 
+                // Replace scalar variables
                 Object.keys(vars).forEach(v => {
-                    const regex = new RegExp('\\b' + v + '\\b', 'gi');
-                    let val = vars[v];
-                    processed = processed.replace(regex, typeof val === 'string' ? `"${val}"` : val);
+                    if (typeof vars[v] !== 'object') {
+                        const regex = new RegExp('\\b' + v + '\\b', 'gi');
+                        let val = vars[v];
+                        processed = processed.replace(regex, typeof val === 'string' ? `"${val}"` : val);
+                    }
                 });
 
                 try { return eval(processed); } catch (e) { return 0; }
@@ -587,14 +616,37 @@
                         let vNames = m[1].split(',').map(v => v.trim());
                         for (let v of vNames) {
                             let input = await getTerminalInput();
-                            let up = v.toUpperCase();
-                            vars[up] = (varTypes[up] === 'char' || varTypes[up] === 'string') ? input : Number(input);
+                            
+                            // Check if target is an array element: numbers[i]
+                            let arrMatch = v.match(/(\w+)\s*\[\s*(.+)\s*\]/i);
+                            if (arrMatch) {
+                                let upArr = arrMatch[1].toUpperCase();
+                                let idx = evaluateExpr(arrMatch[2]);
+                                if (vars[upArr] && vars[upArr][idx] !== undefined) {
+                                    let baseType = arrayConfigs[upArr].baseType;
+                                    vars[upArr][idx] = (baseType === 'char' || baseType === 'string') ? input : Number(input);
+                                }
+                            } else {
+                                let up = v.toUpperCase();
+                                vars[up] = (varTypes[up] === 'char' || varTypes[up] === 'string') ? input : Number(input);
+                            }
                         }
                     }
                 } else if (cmd.includes(':=')) {
                     let parts = cmd.split(':=');
-                    let target = parts[0].trim().toUpperCase();
-                    vars[target] = evaluateExpr(parts[1]);
+                    let target = parts[0].trim();
+                    let value = evaluateExpr(parts[1]);
+                    
+                    let arrMatch = target.match(/(\w+)\s*\[\s*(.+)\s*\]/i);
+                    if (arrMatch) {
+                        let upArr = arrMatch[1].toUpperCase();
+                        let idx = evaluateExpr(arrMatch[2]);
+                        if (vars[upArr] && vars[upArr][idx] !== undefined) {
+                            vars[upArr][idx] = value;
+                        }
+                    } else {
+                        vars[target.toUpperCase()] = value;
+                    }
                 }
             };
 
@@ -711,7 +763,6 @@
                         let untilLine = lines[repeatBlock.end - 1];
                         let condStr = untilLine.match(/UNTIL\s+(.+)/i)?.[1];
                         do {
-                            // Interpret everything between REPEAT and UNTIL
                             await interpret(i + 1, repeatBlock.end - 1);
                         } while (!evaluateExpr(condStr));
                         i = repeatBlock.end;
