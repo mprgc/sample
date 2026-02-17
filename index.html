@@ -378,9 +378,9 @@
                 <span style="cursor: pointer;" onclick="hideAboutModal()">✕</span>
             </div>
             <div class="modal-body">
-                <h2>Welcome to GK PASCAL IDE 4.1+</h2>
+                <h2>Welcome to GK PASCAL IDE</h2>
                 <p>පස්කල් කේතයන් පහසුවෙන් ක්‍රියාත්මක කර බැලීමට මෙම මෘදුකාංගය භාවිතා කරන්න.</p>
-                <p>දැන් For Loops සමඟ DOWNTO සහ Nested IF-ELSE පහසුකම නිවැරදිව ඇතුළත් කර ඇත.</p>
+                <p>දැන් For, If-Else, Case සහ While/Repeat Loops පහසුකම ඇතුළත් කර ඇත.</p>
             </div>
         </div>
     </div>
@@ -388,7 +388,7 @@
     <div class="navbar">
         <div class="nav-left">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo">GK PASCAL IDE 4.1</div>
+            <div class="logo">GK PASCAL IDE</div>
         </div>
         <div class="nav-right">
             <button class="btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
@@ -430,7 +430,7 @@
         let currentInputBuffer = "";
         let terminalHistory = "";
 
-        const defaultCode = "PROGRAM ForLoopDownToExample;\nVAR\n  i: integer;\nBEGIN\n  FOR i := 5 DOWNTO 1 DO\n    writeln(i);\nEND.";
+        const defaultCode = "PROGRAM Hello;\nBIGEN\n  WRITELN('Hello, Gayan Sir...!');\nEND.";
 
         function toggleSidebar() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
         function showAboutModal() { document.getElementById('about-modal').style.display = 'flex'; }
@@ -516,7 +516,7 @@
             
             let lines = rawLines.map(l => {
                 let temp = l;
-                ['PROGRAM', 'VAR', 'BEGIN', 'END', 'IF', 'THEN', 'ELSE', 'FOR', 'TO', 'DOWNTO', 'DO', 'WHILE', 'REPEAT', 'UNTIL', 'WRITE', 'WRITELN', 'READ', 'READLN'].forEach(k => {
+                ['PROGRAM', 'VAR', 'BEGIN', 'END', 'IF', 'THEN', 'ELSE', 'FOR', 'TO', 'DOWNTO', 'DO', 'WHILE', 'REPEAT', 'UNTIL', 'WRITE', 'WRITELN', 'READ', 'READLN', 'CASE', 'OF'].forEach(k => {
                     const regex = new RegExp('^' + k + '\\b', 'i');
                     temp = temp.replace(regex, k);
                 });
@@ -602,11 +602,12 @@
                 if (idx >= lines.length) return { size: 0, start: idx, end: idx };
                 let line = lines[idx];
 
-                if (line.toUpperCase() === 'BEGIN') {
+                if (line.toUpperCase() === 'BEGIN' || line.toUpperCase().startsWith('CASE')) {
                     let depth = 1, k = idx + 1;
                     while (k < lines.length && depth > 0) {
-                        if (lines[k].toUpperCase() === 'BEGIN') depth++;
-                        if (lines[k].toUpperCase().startsWith('END')) depth--;
+                        let up = lines[k].toUpperCase();
+                        if (up === 'BEGIN' || up.startsWith('CASE')) depth++;
+                        if (up.startsWith('END')) depth--;
                         k++;
                     }
                     return { size: k - idx, start: idx, end: k };
@@ -634,6 +635,22 @@
                      return { size: size, start: idx, end: idx + size };
                 }
 
+                if (line.toUpperCase().startsWith('WHILE')) {
+                     let size = 1;
+                     let body = getBlock(idx + 1);
+                     size += body.size;
+                     return { size: size, start: idx, end: idx + size };
+                }
+
+                if (line.toUpperCase().startsWith('REPEAT')) {
+                    let k = idx + 1;
+                    while (k < lines.length && !lines[k].toUpperCase().startsWith('UNTIL')) {
+                        let block = getBlock(k);
+                        k = block.end;
+                    }
+                    return { size: (k + 1) - idx, start: idx, end: k + 1 };
+                }
+
                 return { size: 1, start: idx, end: idx + 1 };
             };
 
@@ -641,29 +658,27 @@
                 let i = start;
                 while (i < end) {
                     let line = lines[i];
-                    if (!line || line.toUpperCase().startsWith('PROGRAM') || line.toUpperCase().startsWith('VAR') || line.toUpperCase() === 'BEGIN' || line.toUpperCase().startsWith('END.')) { i++; continue; }
+                    let upper = line.toUpperCase();
+                    if (!line || upper.startsWith('PROGRAM') || upper.startsWith('VAR') || upper === 'BEGIN' || upper.startsWith('END.')) { i++; continue; }
 
-                    if (line.toUpperCase().startsWith('IF')) {
+                    if (upper.startsWith('IF')) {
                         let condStr = line.match(/IF\s+(.+)\s+THEN/i)?.[1];
                         let isTrue = evaluateExpr(condStr);
-                        
                         let thenBlock = getBlock(i + 1);
                         let elseIdx = (i + 1) + thenBlock.size;
                         let hasElse = elseIdx < end && lines[elseIdx].toUpperCase() === 'ELSE';
 
-                        if (isTrue) {
-                            await interpret(thenBlock.start, thenBlock.end);
-                        } else if (hasElse) {
+                        if (isTrue) await interpret(thenBlock.start, thenBlock.end);
+                        else if (hasElse) {
                             let elseBlock = getBlock(elseIdx + 1);
                             await interpret(elseBlock.start, elseBlock.end);
                         }
-
                         i = hasElse ? (elseIdx + 1 + getBlock(elseIdx + 1).size) : elseIdx;
                         continue;
                     }
 
-                    if (line.toUpperCase().startsWith('FOR')) {
-                        let isDownto = line.toUpperCase().includes('DOWNTO');
+                    if (upper.startsWith('FOR')) {
+                        let isDownto = upper.includes('DOWNTO');
                         let regex = isDownto ? /FOR\s+(\w+)\s*:=\s*(.+)\s+DOWNTO\s+(.+)\s+DO/i : /FOR\s+(\w+)\s*:=\s*(.+)\s+TO\s+(.+)\s+DO/i;
                         let m = line.match(regex);
                         if (m) {
@@ -671,25 +686,79 @@
                             let startVal = Math.floor(evaluateExpr(m[2]));
                             let endVal = Math.floor(evaluateExpr(m[3]));
                             let loopBlock = getBlock(i + 1);
-
                             if (!isDownto) {
-                                for (let val = startVal; val <= endVal; val++) {
-                                    vars[vName] = val;
-                                    await interpret(loopBlock.start, loopBlock.end);
-                                }
+                                for (let val = startVal; val <= endVal; val++) { vars[vName] = val; await interpret(loopBlock.start, loopBlock.end); }
                             } else {
-                                for (let val = startVal; val >= endVal; val--) {
-                                    vars[vName] = val;
-                                    await interpret(loopBlock.start, loopBlock.end);
-                                }
+                                for (let val = startVal; val >= endVal; val--) { vars[vName] = val; await interpret(loopBlock.start, loopBlock.end); }
                             }
                             i = loopBlock.end;
                             continue;
                         }
                     }
 
-                    if (line.toUpperCase() === 'ELSE' || line.toUpperCase() === 'END' || line.toUpperCase() === 'END;') { i++; continue; }
+                    if (upper.startsWith('WHILE')) {
+                        let condStr = line.match(/WHILE\s+(.+)\s+DO/i)?.[1];
+                        let loopBlock = getBlock(i + 1);
+                        while (evaluateExpr(condStr)) {
+                            await interpret(loopBlock.start, loopBlock.end);
+                        }
+                        i = loopBlock.end;
+                        continue;
+                    }
 
+                    if (upper.startsWith('REPEAT')) {
+                        let repeatBlock = getBlock(i);
+                        let untilLine = lines[repeatBlock.end - 1];
+                        let condStr = untilLine.match(/UNTIL\s+(.+)/i)?.[1];
+                        do {
+                            // Interpret everything between REPEAT and UNTIL
+                            await interpret(i + 1, repeatBlock.end - 1);
+                        } while (!evaluateExpr(condStr));
+                        i = repeatBlock.end;
+                        continue;
+                    }
+
+                    if (upper.startsWith('CASE')) {
+                        let caseVarExpr = line.match(/CASE\s+(.+)\s+OF/i)?.[1];
+                        let caseVal = evaluateExpr(caseVarExpr);
+                        let caseBlock = getBlock(i);
+                        let found = false;
+                        let k = i + 1;
+                        while (k < (i + caseBlock.size)) {
+                            let l = lines[k];
+                            let upL = l.trim().toUpperCase();
+                            if (upL === 'ELSE') {
+                                if (!found) {
+                                    let elseB = getBlock(k + 1);
+                                    await interpret(elseB.start, elseB.end);
+                                }
+                                break;
+                            }
+                            if (upL.startsWith('END')) break;
+                            if (l.includes(':')) {
+                                let parts = l.split(':');
+                                let condition = parts[0].trim();
+                                let isMatch = false;
+                                if (condition.includes('..')) {
+                                    let range = condition.split('..');
+                                    let low = evaluateExpr(range[0]);
+                                    let high = evaluateExpr(range[1]);
+                                    if (caseVal >= low && caseVal <= high) isMatch = true;
+                                } else if (evaluateExpr(condition) == caseVal) isMatch = true;
+
+                                if (isMatch) {
+                                    found = true;
+                                    let stmt = parts.slice(1).join(':').trim();
+                                    if (stmt) await runStatement(stmt);
+                                }
+                            }
+                            k++;
+                        }
+                        i += caseBlock.size;
+                        continue;
+                    }
+
+                    if (upper === 'ELSE' || upper === 'END' || upper === 'END;' || upper.startsWith('UNTIL')) { i++; continue; }
                     await runStatement(line);
                     i++;
                 }
