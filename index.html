@@ -19,7 +19,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-y: auto;
+            overflow: hidden;
         }
 
         /* Top Navigation Bar - FIXED */
@@ -45,6 +45,10 @@
             font-weight: bold;
             color: #00bcd4;
             font-size: 1.2rem;
+        }
+
+        .logo span {
+            color: #ffffff;
         }
 
         .menu-btn {
@@ -158,13 +162,27 @@
         .modal-card {
             background: #252526;
             width: 100%;
-            max-width: 480px;
+            max-width: 550px;
+            max-height: 90vh;
             border-radius: 12px;
-            overflow: hidden;
+            overflow: hidden; /* No scroll bar */
             color: #e0e0e0;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
             border: 1px solid #444;
             animation: slideUp 0.3s ease;
+            -webkit-overflow-scrolling: touch; /* Allow touch scroll */
+        }
+        
+        /* Inner scrollable area without bar */
+        .modal-body-scroll {
+            overflow-y: auto;
+            max-height: calc(90vh - 60px);
+            scrollbar-width: none; /* Firefox */
+            
+        }
+        .modal-body-scroll::-webkit-scrollbar {
+            display: none; /* Safari/Chrome */
+            
         }
 
         @keyframes slideUp {
@@ -181,10 +199,47 @@
             align-items: center;
             font-size: 1.1rem;
             font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .modal-body {
             padding: 25px;
+        }
+
+        .modal-body h2 {
+            color: #1a73e8;
+            margin-top: 0;
+        }
+
+        .modal-body ul {
+            padding-left: 20px;
+            color: #ccc;
+        }
+
+        .modal-body ul li {
+            margin-bottom: 5px;
+        }
+
+        .developer-info {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            border-top: 1px solid #444;
+            padding-top: 20px;
+        }
+
+        .dev-text {
+            flex: 1;
+        }
+
+        .dev-img {
+            width: 120px;
+            height: 150px;
+            background-color: #333;
+            border-radius: 8px;
+            object-fit: cover;
         }
 
         .overlay {
@@ -231,6 +286,9 @@
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Workspace */
@@ -344,7 +402,49 @@
             .terminal-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
             body.show-terminal .editor-container { z-index: 5; visibility: hidden; }
             body.show-terminal .terminal-container { z-index: 10; visibility: visible; }
+            
+            /* UI Fix: Hide Clear text but KEEP Run text on mobile */
+            .btn-clear span { display: none; }
+            .btn-clear { padding: 8px 12px; }
+            
+            .run-btn span { display: inline; } /* Keep Run text */
+            .run-btn { padding: 8px 15px; }
         }
+
+        /* PDF Modal Styles */
+        #pdf-modal .modal-card {
+            max-width: 90%;
+            height: 90vh;
+            overflow: hidden; /* No scroll bar */
+        }
+        
+        #pdf-modal .modal-body {
+            height: calc(100% - 50px);
+            padding: 0;
+            overflow: hidden; /* No scroll bar */
+        }
+
+        /* Custom Clear Confirmation Modal */
+        .confirm-modal-card {
+            max-width: 400px;
+            padding: 20px;
+            text-align: center;
+        }
+        .confirm-btns {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .confirm-btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-yes { background-color: #f44336; color: white; }
+        .btn-no { background-color: #444; color: white; }
     </style>
 </head>
 
@@ -353,9 +453,11 @@
     <input type="file" id="file-input" style="display: none;" accept=".pas,.txt" onchange="handleFileSelect(event)">
 
     <div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+    
+    <!-- Sidebar -->
     <div id="sidebar" class="sidebar">
         <div class="sidebar-header">
-            <span>GK PASCAL IDE</span>
+            <div class="logo">GK PASCAL <span>IDE</span></div>
             <button class="menu-btn" onclick="toggleSidebar()">✕</button>
         </div>
         <div class="sidebar-menu">
@@ -365,22 +467,81 @@
             <div class="sidebar-item" onclick="saveCode(); toggleSidebar();">
                 <span>💾</span> Save Program
             </div>
+            <div class="sidebar-item" onclick="showLearnModal(); toggleSidebar();">
+                <span>📚</span> Learn Pascal
+            </div>
             <div class="sidebar-item" onclick="showAboutModal(); toggleSidebar();">
                 <span>ℹ️</span> About Us
             </div>
         </div>
     </div>
 
+    <!-- Clear Confirmation Modal -->
+    <div id="clear-modal" class="modal-overlay">
+        <div class="modal-card confirm-modal-card">
+            <h3>කේතය මකා දැමීම</h3>
+            <p>ඔබට සියලු කේත මකා දැමීමට අවශ්‍ය බව සහතිකද?</p>
+            <div class="confirm-btns">
+                <button class="confirm-btn btn-yes" onclick="confirmClear()">ඔව්, මකන්න</button>
+                <button class="confirm-btn btn-no" onclick="closeClearModal()">අවලංගු කරන්න</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
     <div id="about-modal" class="modal-overlay" onclick="hideAboutModal()">
         <div class="modal-card" onclick="event.stopPropagation()">
             <div class="modal-header">
                 <span>About Us</span>
                 <span style="cursor: pointer;" onclick="hideAboutModal()">✕</span>
             </div>
+            <div class="modal-body-scroll">
+                <div class="modal-body">
+                    <h2>Welcome to GK PASCAL IDE 1</h2>
+                    <p>මෙම මෘදුකාංගය නිර්මාණය කර ඇත්තේ 11 ශ්‍රේණිය පාසල් යන සිසුන්ට ICT විෂයේ ඇති ක්‍රමලේක ලිවීම (Programming) යන පාඩමේ භාවිතා වන Pascal කේත පරිගණකයක් නැති උවත් Smart Phone එකකින් උවත් ඉතා පහසුවෙන් සහ නිවැරදිව පරීක්ෂා කර Output එක බැලීමට සහ ඉගෙන ගැනීමටයි. <br> <br> Free Pascal, Turbo Pascal වගේ සංකීර්ණ මෘදුකාංග වලට නොගොස් ඕනෑම Smart ජංගම දුරකතනයක ක්‍රියාකරන මෙම සරල App එක මගින් ඔබේ Pascal Code හදුනාගෙන එය JS වලට හරවා Terminal එකෙන් ප්‍රතිදානය පෙන්වයි.</p>
+                    <ul>
+                        <li>✓ Real-time Rendering</li>
+                        <li>✓ Simple & User-friendly UI</li>
+                        <li>✓ Only Educational Support</li>
+                        <li>✓ Case-sensitive නෙවෙයි.</li>
+                    </ul>
+                    <p>මෙහිදී පහත Simple Pascal කේත පමණක් සාර්ථකව ක්‍රියාත්මක කළ හැක:</p>
+                    <ul>
+                        <li>Simple "Hello World"</li>
+                        <li>Write and Read</li>
+                        <li>For loop (to-do) and (downto-do)</li>
+                        <li>While do</li>
+                        <li>Repeat until</li>
+                        <li>If-then</li>
+                        <li>If-then-else</li>
+                        <li>Nested If</li>
+                        <li>Array</li>
+                    </ul>
+
+                    <div class="developer-info">
+                        <div class="dev-text">
+                            <h3 style="color: #1a73e8; margin-bottom: 5px;">Developer</h3>
+                            <p><strong>Name:</strong> Gayan Karunathilaka (ICT Sir)</p>
+                            <p><strong>Version:</strong> 1.0 (2026)</p>
+                            <p style="font-size: 0.9rem; line-height: 1.4;">මගේ ICT පන්ති වලට සම්බන්ධ වීමට 071 327 6655 අංකයට <strong>class</strong> ලෙස කෙටි පණිවිඩයක් යොමු කරන්න.</p>
+                            <p>🔴 Web: <a href="https://sites.google.com/view/gayan-karunathilaka-ict-class/home" style="color: #1a73e8; text-decoration: none;">Class Website</a></p>
+                        </div>
+                        <img src="sir.jpg" alt="Developer" class="dev-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learn Pascal Modal (PDF Viewer) -->
+    <div id="pdf-modal" class="modal-overlay" onclick="hideLearnModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <span>Learn Pascal</span>
+                <span style="cursor: pointer;" onclick="hideLearnModal()">✕</span>
+            </div>
             <div class="modal-body">
-                <h2>Welcome to GK PASCAL IDE</h2>
-                <p>පස්කල් කේතයන් පහසුවෙන් ක්‍රියාත්මක කර බැලීමට මෙම මෘදුකාංගය භාවිතා කරන්න.</p>
-                <p>දැන් For, If-Else, Case සහ While/Repeat Loops මෙන්ම Arrays සඳහා ද සහය දක්වයි.</p>
+                <iframe id="pdf-viewer" src="lesson.html" width="100%" height="100%" frameborder="0"></iframe>
             </div>
         </div>
     </div>
@@ -388,17 +549,17 @@
     <div class="navbar">
         <div class="nav-left">
             <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-            <div class="logo">GK PASCAL IDE</div>
+            <div class="logo">GK PASCAL <span>IDE</span></div>
         </div>
         <div class="nav-right">
-            <button class="btn-clear" onclick="clearCode()">🗑️ <span>Clear</span></button>
+            <button class="btn-clear" onclick="openClearModal()">🗑️ <span>Clear</span></button>
             <button class="run-btn" onclick="executePascal()">▶ <span>RUN</span></button>
         </div>
     </div>
 
     <div class="mobile-tabs">
-        <button id="tab-editor" class="mobile-tab-btn active" onclick="switchMobileTab('editor')">EDITOR</button>
-        <button id="tab-terminal" class="mobile-tab-btn" onclick="switchMobileTab('terminal')">TERMINAL</button>
+        <button id="tab-editor" class="mobile-tab-btn active" onclick="switchMobileTab('editor')"><span><></span> EDITOR</button>
+        <button id="tab-terminal" class="mobile-tab-btn" onclick="switchMobileTab('terminal')"> <span>📺</span> TERMINAL</button>
     </div>
 
     <div class="workspace">
@@ -412,7 +573,7 @@
 
         <div id="terminal-view" class="terminal-container">
             <div class="terminal-header">Terminal Output</div>
-            <div id="terminal-output" tabindex="0">C:\Users\Pascal\Documents> <span class="cursor"></span></div>
+            <div id="terminal-output" tabindex="0">GK Pascal Compiler...<br>C:\Users\Pascal\Documents> <span class="cursor"></span></div>
             <input type="text" id="terminal-input-hidden">
         </div>
     </div>
@@ -424,17 +585,33 @@
         const hiddenInput = document.getElementById('terminal-input-hidden');
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('overlay');
+        const clearModal = document.getElementById('clear-modal');
 
         let isWaitingForInput = false;
         let inputResolver = null;
         let currentInputBuffer = "";
         let terminalHistory = "";
 
-        const defaultCode = "PROGRAM Hello;\nBIGEN\n  WRITELN('Hello, Gayan Sir...!');\nEND.";
+        const defaultCode = "PROGRAM Hello;\nBEGIN\n  WRITELN('Hello, Gayan Sir...!');\nEND.";
 
         function toggleSidebar() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
         function showAboutModal() { document.getElementById('about-modal').style.display = 'flex'; }
         function hideAboutModal() { document.getElementById('about-modal').style.display = 'none'; }
+        
+        function showLearnModal() { document.getElementById('pdf-modal').style.display = 'flex'; }
+        function hideLearnModal() { document.getElementById('pdf-modal').style.display = 'none'; }
+
+        // Clear Modal functions
+        function openClearModal() { clearModal.style.display = 'flex'; }
+        function closeClearModal() { clearModal.style.display = 'none'; }
+        function confirmClear() {
+            editor.value = "";
+            updateLineNumbers();
+            closeClearModal();
+            switchMobileTab('editor');
+            editor.focus();
+            editor.setSelectionRange(0, 0);
+        }
 
         function switchMobileTab(tab) {
             if (tab === 'editor') {
@@ -489,7 +666,6 @@
             return new Promise(resolve => { inputResolver = resolve; });
         }
 
-        function clearCode() { if (confirm("කේතය මකා දැමීමට අවශ්‍යද?")) { editor.value = ""; updateLineNumbers(); } }
         function saveCode() {
             const blob = new Blob([editor.value], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
@@ -507,7 +683,7 @@
 
         async function executePascal() {
             if (window.innerWidth <= 900) switchMobileTab('terminal');
-            terminalHistory = "Compiling...\n------------------------------\n";
+            terminalHistory = " 🤖 Compiling...\n------------------------------\n";
             renderTerminal();
 
             const fullCode = editor.value;
@@ -525,7 +701,7 @@
 
             let vars = {};
             let varTypes = {};
-            let arrayConfigs = {}; // Store bounds for arrays
+            let arrayConfigs = {}; 
 
             let varSectionMatch = cleanCode.match(/VAR\s+([\s\S]+?)(?=\s+BEGIN)/i);
             if (varSectionMatch) {
@@ -539,14 +715,13 @@
                             let upName = n.trim().toUpperCase();
                             if (!upName) return;
 
-                            // Check if it's an array: array[1..5] of integer
                             let arrayMatch = typeRaw.match(/array\s*\[\s*(\d+)\s*\.\.\s*(\d+)\s*\]\s*of\s*(\w+)/i);
                             if (arrayMatch) {
                                 let low = parseInt(arrayMatch[1]);
                                 let high = parseInt(arrayMatch[2]);
                                 let baseType = arrayMatch[3].toLowerCase();
                                 arrayConfigs[upName] = { low, high, baseType };
-                                vars[upName] = {}; // Store as object to handle custom indices
+                                vars[upName] = {}; 
                                 for (let i = low; i <= high; i++) {
                                     vars[upName][i] = (baseType === 'char' || baseType === 'string') ? "" : 0;
                                 }
@@ -563,7 +738,6 @@
                 if (!expr) return 0;
                 let processed = expr.trim();
                 
-                // Handle Array Access: numbers[i]
                 processed = processed.replace(/(\w+)\s*\[\s*([^\]]+)\s*\]/g, (match, arrName, indexExpr) => {
                     let upArr = arrName.toUpperCase();
                     if (vars[upArr] !== undefined && typeof vars[upArr] === 'object') {
@@ -581,7 +755,6 @@
                     .replace(/\bAND\b/gi, '&&')
                     .replace(/\bOR\b/gi, '||');
 
-                // Replace scalar variables
                 Object.keys(vars).forEach(v => {
                     if (typeof vars[v] !== 'object') {
                         const regex = new RegExp('\\b' + v + '\\b', 'gi');
@@ -617,7 +790,6 @@
                         for (let v of vNames) {
                             let input = await getTerminalInput();
                             
-                            // Check if target is an array element: numbers[i]
                             let arrMatch = v.match(/(\w+)\s*\[\s*(.+)\s*\]/i);
                             if (arrMatch) {
                                 let upArr = arrMatch[1].toUpperCase();
